@@ -44,9 +44,93 @@
 
     .btn-submit { width: 100%; padding: 14px; background: var(--accent-blue); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .btn-reset { width: 100%; padding: 10px; background: #374151; color: var(--text-muted); border: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-archive { width: 100%; padding: 10px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
 
     .sub-error { border-top: 1px dashed var(--border-color); margin-top: 10px; padding-top: 8px; }
     .sub-error-title { font-size: 0.8rem; font-weight: bold; color: var(--accent-orange); margin-bottom: 4px; }
+
+    /* Bearbeitungs-Banner */
+    .edit-mode-banner {
+      display: none;
+      background: var(--accent-orange);
+      color: #000;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    .btn-cancel-edit {
+      background: #000;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+
+    /* Modal / Archiv CSS */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+    .modal-content { background: var(--card-bg); border-radius: 10px; width: 100%; max-width: 450px; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-color); padding: 15px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    .modal-title { font-size: 1.1rem; font-weight: bold; color: #fff; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .archive-list { overflow-y: auto; overflow-x: hidden; flex: 1; margin-bottom: 10px; }
+    
+    /* Swipeable List Items */
+    .archive-wrapper {
+      position: relative;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--accent-red);
+    }
+    .archive-delete-bg {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 15px;
+      padding-left: 15px;
+      background: var(--accent-red);
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 0.85rem;
+      user-select: none;
+    }
+    .archive-delete-bg.left {
+      justify-content: flex-start;
+    }
+    .archive-item {
+      position: relative;
+      background: #111827;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+      transition: transform 0.15s ease-out;
+      touch-action: pan-y;
+      user-select: none;
+    }
+    .archive-info { font-size: 0.85rem; }
+    .archive-date { font-weight: bold; color: var(--accent-blue); }
+    .btn-load { background: var(--accent-green); color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+
+    .confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+    .btn-modal-action { padding: 12px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
+    .btn-modal-primary { background: var(--accent-blue); color: #fff; }
+    .btn-modal-secondary { background: #4b5563; color: #fff; }
+    .btn-modal-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
 
     /* =========================================================
        PDF DESIGN (A4 Querformat: 1123px x 794px)
@@ -165,6 +249,15 @@
 
 <div class="container" id="main-form">
   <h1>Schichtbuch Bandgalvanik</h1>
+
+  <button type="button" class="btn-archive" onclick="openArchiveModal()">
+    📁 Schichtbuch-Archiv (letzte 50 Einträge)
+  </button>
+
+  <div id="editBanner" class="edit-mode-banner">
+    ⚠️ Du bearbeitest einen bestehenden Archiv-Eintrag!<br>
+    <button type="button" class="btn-cancel-edit" onclick="cancelEditMode()">Bearbeitung abbrechen & neue Schicht starten</button>
+  </div>
 
   <div class="card">
     <div class="card-title">Schichtdaten</div>
@@ -286,7 +379,7 @@
             <div class="card">
               <div class="card-title">Stationen & Besonderheiten</div>
               <label>Auffälligkeiten an den Stationen</label>
-              <textarea id="stationen_${a}" placeholder="Abwickeln, Schweißen, Hot Wash, US-Clean..."></textarea>
+              <textarea id="stationen_${a}" placeholder="Abwickeln, Schweißen, Hot Wash, U-Clean..."></textarea>
               <label>Defekte & technische Störungen</label>
               <textarea id="defekte_${a}" placeholder="Was war defekt?"></textarea>
               <label>Fehlendes Werkzeug / Materialien / KVP</label>
@@ -301,15 +394,58 @@
     <button type="button" id="submitBtn" class="btn-submit" onclick="generateShiftPDF()">
       PDF Erstellen & Öffnen
     </button>
-    <button type="button" class="btn-reset" onclick="resetFormKeepArtikel()">
-      Neues Protokoll starten (Artikel-Nr. behalten)
+    <button type="button" class="btn-reset" onclick="openResetModal()">
+      Neues Protokoll starten / Zurückstellen
     </button>
   </form>
+</div>
+
+<!-- ARCHIV MODAL -->
+<div id="archiveModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Schichtbuch-Archiv</div>
+      <button class="modal-close" onclick="closeArchiveModal()">&times;</button>
+    </div>
+    <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px; text-align:center;">
+      💡 Eintrag nach links oder rechts wischen, um ihn zu löschen.
+    </div>
+    <div class="archive-list" id="archiveList">
+      <!-- Dynamische Liste -->
+    </div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div id="resetModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Formular zurückstellen</div>
+      <button class="modal-close" onclick="closeResetModal()">&times;</button>
+    </div>
+    <p style="font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">
+      Möchtest du diese Schicht im Archiv speichern oder das Formular einfach leeren, ohne zu archivieren?
+    </p>
+    <div class="confirm-actions">
+      <button class="btn-modal-action btn-modal-primary" onclick="confirmReset(true)">
+        💾 Archivieren & Neues Protokoll starten
+      </button>
+      <button class="btn-modal-action btn-modal-secondary" onclick="confirmReset(false)">
+        🗑️ Nicht archivieren (Nur zurückstellen)
+      </button>
+      <button class="btn-modal-action btn-modal-cancel" onclick="closeResetModal()">
+        Abbrechen
+      </button>
+    </div>
+  </div>
 </div>
 
 <div id="pdf-container"></div>
 
 <script>
+  // Aktuell geladener Archiv-Eintrag (null = neues Protokoll)
+  let currentEditingArchiveId = null;
+
   // Initiales Datum
   document.getElementById('datum').valueAsDate = new Date();
 
@@ -320,8 +456,16 @@
     document.getElementById(`anlage-${anl}`).classList.add('active');
   }
 
-  // Auto-Save in LocalStorage bei jeder Eingabe
   const formElement = id => document.getElementById(id);
+
+  function getCurrentFormData() {
+    const data = {};
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(el => {
+      if (el.id) data[el.id] = el.value;
+    });
+    return data;
+  }
 
   function saveToLocalStorage() {
     const inputs = document.querySelectorAll('input, select, textarea');
@@ -330,6 +474,11 @@
         localStorage.setItem('schichtbuch_' + el.id, el.value);
       }
     });
+    if (currentEditingArchiveId) {
+      localStorage.setItem('schichtbuch_current_editing_id', currentEditingArchiveId);
+    } else {
+      localStorage.removeItem('schichtbuch_current_editing_id');
+    }
   }
 
   function loadFromLocalStorage() {
@@ -343,52 +492,315 @@
     if (!localStorage.getItem('schichtbuch_datum')) {
       document.getElementById('datum').valueAsDate = new Date();
     }
+
+    const savedEditingId = localStorage.getItem('schichtbuch_current_editing_id');
+    if (savedEditingId) {
+      currentEditingArchiveId = parseInt(savedEditingId, 10);
+      updateEditBanner();
+    }
+  }
+
+  function updateEditBanner() {
+    const banner = document.getElementById('editBanner');
+    if (currentEditingArchiveId) {
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  function cancelEditMode() {
+    currentEditingArchiveId = null;
+    localStorage.removeItem('schichtbuch_current_editing_id');
+    updateEditBanner();
+    alert("Bearbeitungsmodus aufgehoben.");
+  }
+
+  // ARCHIV LOGIK
+  function archiveCurrentState() {
+    let archive = [];
+    try {
+      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
+    } catch (e) { archive = []; }
+
+    const currentData = getCurrentFormData();
+    
+    const datum = currentData.datum || new Date().toISOString().split('T')[0];
+    const schicht = currentData.schicht || 'Unbekannt';
+    const bediener = currentData.bediener || 'Kein Name';
+
+    // Wenn wir einen Eintrag bearbeiten, überschreiben wir ihn!
+    if (currentEditingArchiveId) {
+      const index = archive.findIndex(e => e.id === currentEditingArchiveId);
+      if (index !== -1) {
+        archive[index] = {
+          id: currentEditingArchiveId,
+          timestamp: new Date().toLocaleString('de-DE') + ' (Bearbeitet)',
+          datum: datum,
+          schicht: schicht,
+          bediener: bediener,
+          formData: currentData
+        };
+      } else {
+        currentEditingArchiveId = Date.now();
+        archive.unshift({
+          id: currentEditingArchiveId,
+          timestamp: new Date().toLocaleString('de-DE'),
+          datum: datum,
+          schicht: schicht,
+          bediener: bediener,
+          formData: currentData
+        });
+      }
+    } else {
+      const newId = Date.now();
+      const entry = {
+        id: newId,
+        timestamp: new Date().toLocaleString('de-DE'),
+        datum: datum,
+        schicht: schicht,
+        bediener: bediener,
+        formData: currentData
+      };
+      archive.unshift(entry);
+    }
+
+    // Maximal 50 Einträge behalten
+    if (archive.length > 50) {
+      archive = archive.slice(0, 50);
+    }
+
+    localStorage.setItem('schichtbuch_archive', JSON.stringify(archive));
+  }
+
+  function deleteArchiveEntry(id) {
+    let archive = [];
+    try {
+      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
+    } catch (e) { archive = []; }
+
+    const entry = archive.find(e => e.id === id);
+    const label = entry ? `${entry.datum} (${entry.schicht})` : 'diesen Eintrag';
+
+    if (confirm(`Möchtest du ${label} wirklich dauerhaft aus dem Archiv löschen?`)) {
+      archive = archive.filter(e => e.id !== id);
+      localStorage.setItem('schichtbuch_archive', JSON.stringify(archive));
+
+      // Falls der gerade aktiv bearbeitete Eintrag gelöscht wurde -> Bearbeitungsmodus aufheben
+      if (currentEditingArchiveId === id) {
+        cancelEditMode();
+      }
+
+      openArchiveModal(); // Liste aktualisieren
+    } else {
+      openArchiveModal(); // Reset position
+    }
+  }
+
+  function openArchiveModal() {
+    const modal = document.getElementById('archiveModal');
+    const list = document.getElementById('archiveList');
+    list.innerHTML = '';
+
+    let archive = [];
+    try {
+      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
+    } catch (e) { archive = []; }
+
+    if (archive.length === 0) {
+      list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Keine archivierten Schichten vorhanden.</div>';
+    } else {
+      archive.forEach((item) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'archive-wrapper';
+
+        const deleteBgRight = document.createElement('div');
+        deleteBgRight.className = 'archive-delete-bg';
+        deleteBgRight.innerHTML = '🗑️ Löschen';
+        deleteBgRight.onclick = () => deleteArchiveEntry(item.id);
+
+        const deleteBgLeft = document.createElement('div');
+        deleteBgLeft.className = 'archive-delete-bg left';
+        deleteBgLeft.innerHTML = '🗑️ Löschen';
+        deleteBgLeft.onclick = () => deleteArchiveEntry(item.id);
+
+        const el = document.createElement('div');
+        el.className = 'archive-item';
+        el.innerHTML = `
+          <div class="archive-info">
+            <div class="archive-date">${item.datum} - ${item.schicht}</div>
+            <div style="color:var(--text-muted); font-size:0.75rem;">Bediener: ${item.bediener}</div>
+            <div style="color:#6b7280; font-size:0.7rem;">Archiviert: ${item.timestamp}</div>
+          </div>
+          <button class="btn-load" onclick="event.stopPropagation(); loadArchiveEntry(${item.id})">Laden & Bearbeiten</button>
+        `;
+
+        wrapper.appendChild(deleteBgRight);
+        wrapper.appendChild(deleteBgLeft);
+        wrapper.appendChild(el);
+        list.appendChild(wrapper);
+
+        // Swipe Handling (Touch & Mouse)
+        attachSwipeHandler(el, item.id);
+      });
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  function attachSwipeHandler(element, itemId) {
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+
+    const onStart = (e) => {
+      isDragging = true;
+      startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      element.style.transition = 'none';
+    };
+
+    const onMove = (e) => {
+      if (!isDragging) return;
+      currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const diffX = currentX - startX;
+
+      // Maximal -100px bis +100px verschieben
+      if (Math.abs(diffX) < 120) {
+        element.style.transform = `translateX(${diffX}px)`;
+      }
+    };
+
+    const onEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      element.style.transition = 'transform 0.2s ease-out';
+      const diffX = currentX - startX;
+
+      if (Math.abs(diffX) > 70) {
+        // Genug gewischt -> Löschen ausführen
+        element.style.transform = diffX > 0 ? 'translateX(100%)' : 'translateX(-100%)';
+        setTimeout(() => deleteArchiveEntry(itemId), 150);
+      } else {
+        // Zurückfedern
+        element.style.transform = 'translateX(0px)';
+      }
+      startX = 0;
+      currentX = 0;
+    };
+
+    element.addEventListener('touchstart', onStart, { passive: true });
+    element.addEventListener('touchmove', onMove, { passive: true });
+    element.addEventListener('touchend', onEnd);
+
+    element.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+  }
+
+  function closeArchiveModal() {
+    document.getElementById('archiveModal').style.display = 'none';
+  }
+
+  function openResetModal() {
+    document.getElementById('resetModal').style.display = 'flex';
+  }
+
+  function closeResetModal() {
+    document.getElementById('resetModal').style.display = 'none';
+  }
+
+  function confirmReset(shouldArchive) {
+    closeResetModal();
+
+    if (shouldArchive) {
+      archiveCurrentState();
+    }
+
+    const savedArtAkt = {};
+    const savedArtFolge = {};
+
+    ['801', '802', '803', '804'].forEach(a => {
+      savedArtAkt[a] = formElement(`art_akt_${a}`).value;
+      savedArtFolge[a] = formElement(`art_folge_${a}`).value;
+    });
+
+    // Bearbeitungsmodus zurücksetzen für die neue Schicht
+    currentEditingArchiveId = null;
+
+    // Formular-LocalStorage löschen (Archiv behalten)
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('schichtbuch_') && key !== 'schichtbuch_archive') {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Formular zurücksetzen
+    document.getElementById('schichtForm').reset();
+    document.getElementById('datum').valueAsDate = new Date();
+
+    // Artikelnummern wieder einfügen
+    ['801', '802', '803', '804'].forEach(a => {
+      formElement(`art_akt_${a}`).value = savedArtAkt[a] || '';
+      formElement(`art_folge_${a}`).value = savedArtFolge[a] || '';
+    });
+
+    saveToLocalStorage();
+    updateEditBanner();
+
+    if (shouldArchive) {
+      alert("Schicht wurde archiviert und das Formular für die nächste Schicht zurückgestellt!");
+    } else {
+      alert("Formular wurde zurückgestellt (ohne zu archivieren).");
+    }
+  }
+
+  function loadArchiveEntry(id) {
+    let archive = [];
+    try {
+      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
+    } catch (e) { archive = []; }
+
+    const entry = archive.find(e => e.id === id);
+    if (entry && entry.formData) {
+      if (confirm(`Möchtest du die Schicht vom ${entry.datum} (${entry.schicht}) laden? Alle Änderungen überschreiben diesen Eintrag im Archiv.`)) {
+        Object.keys(entry.formData).forEach(key => {
+          const field = document.getElementById(key);
+          if (field) {
+            field.value = entry.formData[key];
+          }
+        });
+        
+        currentEditingArchiveId = id;
+        saveToLocalStorage();
+        updateEditBanner();
+        closeArchiveModal();
+        alert("Eintrag geladen. Wenn du nun Änderungen vornimmst und archivierst/zurückstellst, wird dieser Eintrag aktualisiert.");
+      }
+    }
   }
 
   // Event Listener für Auto-Save anhängen
   document.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
     document.querySelectorAll('input, select, textarea').forEach(el => {
-      el.addEventListener('input', saveToLocalStorage);
-      el.addEventListener('change', saveToLocalStorage);
+      el.addEventListener('input', () => {
+        saveToLocalStorage();
+        if (currentEditingArchiveId) archiveCurrentState();
+      });
+      el.addEventListener('change', () => {
+        saveToLocalStorage();
+        if (currentEditingArchiveId) archiveCurrentState();
+      });
     });
   });
-
-  // Neues Protokoll starten: Datum auf heute, Felder leeren, aber Artikelnummern behalten
-  function resetFormKeepArtikel() {
-    if (confirm("Möchtest du ein neues Protokoll starten? Alle Felder werden geleert, aber die Artikelnummern bleiben erhalten.")) {
-      const savedArtAkt = {};
-      const savedArtFolge = {};
-
-      ['801', '802', '803', '804'].forEach(a => {
-        savedArtAkt[a] = formElement(`art_akt_${a}`).value;
-        savedArtFolge[a] = formElement(`art_folge_${a}`).value;
-      });
-
-      // LocalStorage löschen
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('schichtbuch_')) localStorage.removeItem(key);
-      });
-
-      // Formular zurücksetzen
-      document.getElementById('schichtForm').reset();
-      document.getElementById('datum').valueAsDate = new Date();
-
-      // Artikelnummern wieder einfügen
-      ['801', '802', '803', '804'].forEach(a => {
-        formElement(`art_akt_${a}`).value = savedArtAkt[a] || '';
-        formElement(`art_folge_${a}`).value = savedArtFolge[a] || '';
-      });
-
-      saveToLocalStorage();
-      alert("Neues Formular bereit. Datum wurde aktualisiert!");
-    }
-  }
 
   async function generateShiftPDF() {
     const btn = document.getElementById('submitBtn');
     btn.innerText = "Erstelle Schichtblatt...";
     btn.style.opacity = "0.5";
+
+    // Beim Generieren des PDFs auch sicherstellen, dass Änderungen im Archiv gesichert sind
+    archiveCurrentState();
 
     const datumVal = formElement('datum').value || '-';
     const schichtVal = formElement('schicht').value;
@@ -527,3 +939,4 @@
 
 </body>
 </html>
+
