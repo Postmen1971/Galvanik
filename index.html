@@ -294,10 +294,14 @@
         <option value="Bandriss">Bandriss</option>
         <option value="Beschichtungsfehler">Beschichtungsfehler</option>
         <option value="Mechanischer Defekt">Mechanischer Defekt</option>
-        <option value="Verbogenes Werkzeug">Verbogenes Werkzeug</option>
-        <option value="Einstellteile Stanzerei">Einstellteile Stanzerei</option>
-        <option value="Reinigungsfehler / Flecken">Reinigungsfehler / Flecken</option>
-        <option value="Sonstiges">Sonstiges</option>
+        <option value="Werkzeug">Werkzeug</option>
+        <option value="QS- Prüfung">QS- Prüfung</option>
+        <option value="Verbogene Kontakte">Verbogene Kontakte</option>
+        <option value="Haftung">Haftung</option>
+        <option value="Sonstige">Sonstige</option>
+        <option value="Wickelgüte">Wickelgüte</option>
+        <option value="Anlagenstillstand">Anlagenstillstand</option>
+        <option value="Einstellteile">Einstellteile</option>
       `;
 
       anlagen.forEach((a, index) => {
@@ -664,7 +668,6 @@
       currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
       const diffX = currentX - startX;
 
-      // Maximal -100px bis +100px verschieben
       if (Math.abs(diffX) < 120) {
         element.style.transform = `translateX(${diffX}px)`;
       }
@@ -677,11 +680,9 @@
       const diffX = currentX - startX;
 
       if (Math.abs(diffX) > 70) {
-        // Genug gewischt -> Löschen ausführen
         element.style.transform = diffX > 0 ? 'translateX(100%)' : 'translateX(-100%)';
         setTimeout(() => deleteArchiveEntry(itemId), 150);
       } else {
-        // Zurückfedern
         element.style.transform = 'translateX(0px)';
       }
       startX = 0;
