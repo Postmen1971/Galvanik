@@ -652,9 +652,13 @@
     { pnr: 'TE987654', name: 'A. Weber' }
   ];
 
-  document.getElementById('datum').valueAsDate = new Date();
-
-  const formElement = id => document.getElementById(id);
+  // Setzt das Datumseingabefeld explizit auf das heutige Tagesdatum
+  function setToTodayDate() {
+    const datumEl = document.getElementById('datum');
+    if (datumEl) {
+      datumEl.valueAsDate = new Date();
+    }
+  }
 
   // Hilfsfunktion: Wandelt Datumsangaben zuverlässig in YYYY-MM-DD um
   function normalizeDateString(dateStr) {
@@ -782,7 +786,7 @@
       }
     });
     if (!localStorage.getItem('schichtbuch_datum')) {
-      document.getElementById('datum').valueAsDate = new Date();
+      setToTodayDate();
     }
 
     const savedEditingId = localStorage.getItem('schichtbuch_current_editing_id');
@@ -1054,6 +1058,7 @@
     document.getElementById('resetModal').style.display = 'none';
   }
 
+  // Korrigiertes Zurückstellen: Setzt das Datum nach dem Leeren wieder verlässlich auf das HEUTIGE Tagesdatum
   function confirmReset(shouldArchive) {
     if (shouldArchive) {
       const success = archiveCurrentState();
@@ -1074,15 +1079,20 @@
 
     currentEditingArchiveId = null;
 
+    // Formular-Eingaben aus dem LocalStorage bereinigen
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('schichtbuch_') && key !== 'schichtbuch_archive') {
+      if (key.startsWith('schichtbuch_') && key !== 'schichtbuch_archive' && key !== 'schichtbuch_personnel') {
         localStorage.removeItem(key);
       }
     });
 
+    // Formular zurücksetzen
     document.getElementById('schichtForm').reset();
-    document.getElementById('datum').valueAsDate = new Date();
+    
+    // HEUTIGES DATUM SETZEN
+    setToTodayDate();
 
+    // Artikelnummern & Bediener wieder einfügen
     ['801', '802', '803', '804'].forEach(a => {
       formElement(`art_akt_${a}`).value = savedArtAkt[a] || '';
       formElement(`art_folge_${a}`).value = savedArtFolge[a] || '';
@@ -1094,7 +1104,7 @@
     formHasUnsavedChanges = false;
 
     if (shouldArchive) {
-      alert("Schicht wurde archiviert und das Formular für die nächste Schicht zurückgestellt!");
+      alert("Schicht wurde archiviert und das Formular für die nächste Schicht auf das heutige Datum zurückgestellt!");
     } else {
       alert("Formular wurde zurückgestellt (ohne zu archivieren).");
     }
