@@ -668,6 +668,37 @@
     return `${year}-${month}-${day}`;
   }
 
+  // Prüft, ob ein Eintrag zum gesuchten Datum passt (Schichtdatum ODER Archivierungsdatum)
+  function matchesFilterDate(item, filterDateStr) {
+    if (!filterDateStr) return true;
+    
+    const normFilter = normalizeDateString(filterDateStr); // YYYY-MM-DD
+    const normShiftDate = normalizeDateString(item.datum); // YYYY-MM-DD
+    
+    if (normShiftDate === normFilter) return true;
+    
+    const parts = normFilter.split('-'); // ["YYYY", "MM", "DD"]
+    if (parts.length === 3) {
+      const year = parts[0];
+      const monthWithZero = parts[1];
+      const monthNoZero = String(parseInt(parts[1], 10));
+      const dayWithZero = parts[2];
+      const dayNoZero = String(parseInt(parts[2], 10));
+
+      const deVariant1 = `${dayNoZero}.${monthNoZero}.${year}`; // z.B. 30.7.2026
+      const deVariant2 = `${dayWithZero}.${monthWithZero}.${year}`; // z.B. 30.07.2026
+      const isoVariant = normFilter; // 2026-07-30
+
+      const ts = item.timestamp || '';
+      const shift = item.datum || '';
+
+      if (ts.includes(deVariant1) || ts.includes(deVariant2) || ts.includes(isoVariant)) return true;
+      if (shift.includes(deVariant1) || shift.includes(deVariant2) || shift.includes(isoVariant)) return true;
+    }
+
+    return false;
+  }
+
   function getPersonnelList() {
     try {
       const list = localStorage.getItem('schichtbuch_personnel');
@@ -946,7 +977,6 @@
     }
   }
 
-  // Korrigierter Archiv-Filter mit normiertem Datumsvergleich
   function renderArchiveList(filterDate = null) {
     const list = document.getElementById('archiveList');
     list.innerHTML = '';
@@ -959,8 +989,7 @@
     archive = sortArchiveEntries(archive);
 
     if (filterDate) {
-      const normFilter = normalizeDateString(filterDate);
-      archive = archive.filter(item => normalizeDateString(item.datum) === normFilter);
+      archive = archive.filter(item => matchesFilterDate(item, filterDate));
     }
 
     if (archive.length === 0) {
