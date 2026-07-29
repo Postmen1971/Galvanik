@@ -380,6 +380,7 @@
       border: 1px solid #f1f5f9;
       padding: 5px;
       border-radius: 4px;
+      min-height: 28px;
     }
 
     .pdf-block-title {
@@ -1131,10 +1132,10 @@
       const gutMenge = formElement(`gut_menge_${a}`).value || '0';
       const artAkt = formElement(`art_akt_${a}`).value || '-';
       const artFolge = formElement(`art_folge_${a}`).value || '-';
-      const todo = formElement(`todo_${a}`).value || '-';
-      const stat = formElement(`stationen_${a}`).value || '-';
-      const def = formElement(`defekte_${a}`).value || '-';
-      const mat = formElement(`material_${a}`).value || '-';
+      const todo = (formElement(`todo_${a}`).value || '').trim();
+      const stat = (formElement(`stationen_${a}`).value || '').trim();
+      const def = (formElement(`defekte_${a}`).value || '').trim();
+      const mat = (formElement(`material_${a}`).value || '').trim();
       const wartungGeklickt = formElement(`wartung_${a}`).checked;
 
       const menge = formElement(`ausschuss_menge_${a}_1`).value || '0';
@@ -1153,7 +1154,44 @@
         ausschussBlockHTML = '<div class="pdf-val">Kein Ausschuss</div>';
       }
 
-      const wartungText = wartungGeklickt ? '✅ Ja' : '❌ Nein';
+      // 1. Wheels Wartung: Nur anzeigen, wenn Checkbox aktiv ist
+      const wartungBlockHTML = wartungGeklickt ? `
+        <div class="pdf-block">
+          <div class="pdf-block-title orange">Wheels Wartung</div>
+          <div class="pdf-val"><b>Durchgeführt:</b> ✅ Ja</div>
+        </div>
+      ` : `
+        <div class="pdf-block">
+          <div class="pdf-block-title orange">Wheels Wartung</div>
+          <div class="pdf-val">&nbsp;</div>
+        </div>
+      `;
+
+      // 2. To-Do Folgeschicht: Nur anzeigen, wenn Text vorhanden ist
+      const todoBlockHTML = todo ? `
+        <div class="pdf-block">
+          <div class="pdf-block-title green">To-Do Folgeschicht</div>
+          <div class="pdf-val">${todo}</div>
+        </div>
+      ` : `
+        <div class="pdf-block">
+          <div class="pdf-block-title green">To-Do Folgeschicht</div>
+          <div class="pdf-val">&nbsp;</div>
+        </div>
+      `;
+
+      // 3. Stationen, Defekte & Material (Sonstige Störungen): Nur anzeigen, was auch eingetragen wurde
+      let stoerungenHTML = '';
+      if (stat) stoerungenHTML += `<div class="pdf-val"><b>Stationen:</b> ${stat}</div>`;
+      if (def) stoerungenHTML += `<div class="pdf-val"><b>Defekte:</b> ${def}</div>`;
+      if (mat) stoerungenHTML += `<div class="pdf-val"><b>Material/KVP:</b> ${mat}</div>`;
+
+      const stoerungenBlockHTML = `
+        <div class="pdf-block" style="flex: 1;">
+          <div class="pdf-block-title">Stationen & Störungen</div>
+          ${stoerungenHTML ? stoerungenHTML : '<div class="pdf-val">&nbsp;</div>'}
+        </div>
+      `;
 
       anlagenHTML += `
         <div class="pdf-anlage-card">
@@ -1173,22 +1211,11 @@
               ${ausschussBlockHTML}
             </div>
 
-            <div class="pdf-block">
-              <div class="pdf-block-title orange">Wheels Wartung</div>
-              <div class="pdf-val"><b>Durchgeführt:</b> ${wartungText}</div>
-            </div>
+            ${wartungBlockHTML}
 
-            <div class="pdf-block">
-              <div class="pdf-block-title green">To-Do Folgeschicht</div>
-              <div class="pdf-val">${todo}</div>
-            </div>
+            ${todoBlockHTML}
 
-            <div class="pdf-block" style="flex: 1;">
-              <div class="pdf-block-title">Stationen & Störungen</div>
-              <div class="pdf-val"><b>Stationen:</b> ${stat}</div>
-              <div class="pdf-val"><b>Defekte:</b> ${def}</div>
-              <div class="pdf-val"><b>Material/KVP:</b> ${mat}</div>
-            </div>
+            ${stoerungenBlockHTML}
 
           </div>
         </div>
