@@ -46,16 +46,41 @@
     .card-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--accent-blue); display: flex; justify-content: space-between; }
     .card-title.red { border-bottom-color: var(--accent-red); }
     .card-title.green { border-bottom-color: var(--accent-green); }
+    .card-title.orange { border-bottom-color: var(--accent-orange); }
 
     label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 2px; font-weight: 500; }
-    input, select, textarea { width: 100%; padding: 6px 8px; background: #0b111e; border: 1px solid var(--border-color); border-radius: 5px; color: #fff; font-size: 0.82rem; outline: none; }
-    input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 6px 8px; background: #0b111e; border: 1px solid var(--border-color); border-radius: 5px; color: #fff; font-size: 0.82rem; outline: none; }
+    input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
     
     textarea { 
       resize: vertical; 
       min-height: 42px; 
       field-sizing: content;
       line-height: 1.3;
+    }
+
+    /* Checkbox Styling */
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      background: #0b111e;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .checkbox-container input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-green);
+      cursor: pointer;
+    }
+    .checkbox-container span {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main);
     }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -179,9 +204,6 @@
       transition: background 0.2s;
     }
     .btn-archive:hover { background: #1d4ed8; }
-
-    .sub-error { border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 4px; }
-    .sub-error-title { font-size: 0.72rem; font-weight: bold; color: var(--accent-orange); margin-bottom: 2px; }
 
     /* Bearbeitungs-Banner */
     .edit-mode-banner {
@@ -351,6 +373,7 @@
 
     .pdf-block-title.red { color: #dc2626; border-bottom-color: #fca5a5; }
     .pdf-block-title.green { color: #059669; border-bottom-color: #6ee7b7; }
+    .pdf-block-title.orange { color: #d97706; border-bottom-color: #fcd34d; }
 
     .pdf-val { font-size: 8pt; color: #1e293b; white-space: pre-wrap; word-break: break-word; }
 
@@ -383,7 +406,7 @@
     <button type="button" class="btn-cancel-edit" onclick="cancelEditMode()">Bearbeitung abbrechen & neue Schicht starten</button>
   </div>
 
-  <!-- Kopfdaten (Jetzt nur noch Datum & Schicht) -->
+  <!-- Kopfdaten (Datum & Schicht) -->
   <div class="top-meta-card">
     <div class="top-meta-grid">
       <div>
@@ -449,7 +472,7 @@
                 </div>
               </div>
 
-              <!-- Ausschuss & Fehler -->
+              <!-- Ausschuss & Fehler (Einziges Eingabefeld) -->
               <div class="card">
                 <div class="card-title red">Ausschuss & Fehler</div>
                 
@@ -459,28 +482,21 @@
                     <input type="text" id="ausschuss_menge_${a}_1" placeholder="0">
                   </div>
                   <div>
-                    <label>Hauptursache 1</label>
+                    <label>Hauptursache</label>
                     <select id="ausschuss_grund_${a}_1">${ursachenOptions}</select>
                   </div>
                 </div>
-                <label>Details zu Fehler 1</label>
-                <textarea id="ausschuss_details_${a}_1" placeholder="Beschreibung Fehler 1"></textarea>
+                <label>Details zum Fehler</label>
+                <textarea id="ausschuss_details_${a}_1" placeholder="Beschreibung des Fehlers"></textarea>
+              </div>
 
-                <div class="sub-error">
-                  <div class="sub-error-title">+ Option: Fehler 2</div>
-                  <div class="grid-2">
-                    <div>
-                      <label>Ausschuss 2 (m / Stk)</label>
-                      <input type="text" id="ausschuss_menge_${a}_2" placeholder="0">
-                    </div>
-                    <div>
-                      <label>Hauptursache 2</label>
-                      <select id="ausschuss_grund_${a}_2">${ursachenOptions}</select>
-                    </div>
-                  </div>
-                  <label>Details zu Fehler 2</label>
-                  <textarea id="ausschuss_details_${a}_2" placeholder="Beschreibung Fehler 2"></textarea>
-                </div>
+              <!-- Wheels Wartung -->
+              <div class="card">
+                <div class="card-title orange">Wheels Wartung</div>
+                <label class="checkbox-container">
+                  <input type="checkbox" id="wartung_${a}">
+                  <span>Wheels Wartung durchgeführt</span>
+                </label>
               </div>
 
               <!-- To-Do Folgeschicht -->
@@ -577,7 +593,13 @@
     const data = {};
     const inputs = document.querySelectorAll('input, select, textarea');
     inputs.forEach(el => {
-      if (el.id) data[el.id] = el.value;
+      if (el.id) {
+        if (el.type === 'checkbox') {
+          data[el.id] = el.checked;
+        } else {
+          data[el.id] = el.value;
+        }
+      }
     });
     return data;
   }
@@ -586,7 +608,11 @@
     const inputs = document.querySelectorAll('input, select, textarea');
     inputs.forEach(el => {
       if (el.id) {
-        localStorage.setItem('schichtbuch_' + el.id, el.value);
+        if (el.type === 'checkbox') {
+          localStorage.setItem('schichtbuch_' + el.id, el.checked ? 'true' : 'false');
+        } else {
+          localStorage.setItem('schichtbuch_' + el.id, el.value);
+        }
       }
     });
     if (currentEditingArchiveId) {
@@ -601,7 +627,13 @@
     inputs.forEach(el => {
       if (el.id) {
         const val = localStorage.getItem('schichtbuch_' + el.id);
-        if (val !== null) el.value = val;
+        if (val !== null) {
+          if (el.type === 'checkbox') {
+            el.checked = (val === 'true');
+          } else {
+            el.value = val;
+          }
+        }
       }
     });
     if (!localStorage.getItem('schichtbuch_datum')) {
@@ -759,7 +791,6 @@
       }
     } else {
       archive.forEach((item) => {
-        // Bediener für Anlagen extrahieren
         const b801 = item.formData ? item.formData['bediener_801'] || '' : '';
         const b802 = item.formData ? item.formData['bediener_802'] || '' : '';
         const b803 = item.formData ? item.formData['bediener_803'] || '' : '';
@@ -872,7 +903,11 @@
         Object.keys(entry.formData).forEach(key => {
           const field = document.getElementById(key);
           if (field) {
-            field.value = entry.formData[key];
+            if (field.type === 'checkbox') {
+              field.checked = Boolean(entry.formData[key]);
+            } else {
+              field.value = entry.formData[key];
+            }
           }
         });
         
@@ -933,26 +968,25 @@
       const stat = formElement(`stationen_${a}`).value || '-';
       const def = formElement(`defekte_${a}`).value || '-';
       const mat = formElement(`material_${a}`).value || '-';
+      const wartungGeklickt = formElement(`wartung_${a}`).checked;
+
+      const menge = formElement(`ausschuss_menge_${a}_1`).value || '0';
+      const grund = formElement(`ausschuss_grund_${a}_1`).value;
+      const det = formElement(`ausschuss_details_${a}_1`).value;
 
       let ausschussBlockHTML = '';
-      for (let i = 1; i <= 2; i++) {
-        const menge = formElement(`ausschuss_menge_${a}_${i}`).value || '0';
-        const grund = formElement(`ausschuss_grund_${a}_${i}`).value;
-        const det = formElement(`ausschuss_details_${a}_${i}`).value;
-
-        if ((menge !== '0' && menge !== '') || grund !== 'Kein Ausschuss' || det !== '') {
-          ausschussBlockHTML += `
-            <div style="margin-bottom: 3px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 2px;">
-              <b>Menge:</b> <span style="color:#dc2626; font-weight:bold;">${menge}</span> | <b>Ursache:</b> ${grund}
-              ${det ? `<br><i>${det}</i>` : ''}
-            </div>
-          `;
-        }
-      }
-
-      if (!ausschussBlockHTML) {
+      if ((menge !== '0' && menge !== '') || grund !== 'Kein Ausschuss' || det !== '') {
+        ausschussBlockHTML = `
+          <div style="margin-bottom: 3px; padding-bottom: 2px;">
+            <b>Menge:</b> <span style="color:#dc2626; font-weight:bold;">${menge}</span> | <b>Ursache:</b> ${grund}
+            ${det ? `<br><i>${det}</i>` : ''}
+          </div>
+        `;
+      } else {
         ausschussBlockHTML = '<div class="pdf-val">Kein Ausschuss</div>';
       }
+
+      const wartungText = wartungGeklickt ? '✅ Ja' : '❌ Nein';
 
       anlagenHTML += `
         <div class="pdf-anlage-card">
@@ -968,8 +1002,13 @@
             </div>
 
             <div class="pdf-block">
-              <div class="pdf-block-title red">Ausschuss & Ursachen</div>
+              <div class="pdf-block-title red">Ausschuss & Ursache</div>
               ${ausschussBlockHTML}
+            </div>
+
+            <div class="pdf-block">
+              <div class="pdf-block-title orange">Wheels Wartung</div>
+              <div class="pdf-val"><b>Durchgeführt:</b> ${wartungText}</div>
             </div>
 
             <div class="pdf-block">
