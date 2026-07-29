@@ -656,6 +656,18 @@
 
   const formElement = id => document.getElementById(id);
 
+  // Hilfsfunktion: Wandelt Datumsangaben zuverlässig in YYYY-MM-DD um
+  function normalizeDateString(dateStr) {
+    if (!dateStr) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   function getPersonnelList() {
     try {
       const list = localStorage.getItem('schichtbuch_personnel');
@@ -680,7 +692,6 @@
     });
   }
 
-  // Wandelt z. B. "TE543248 - Max Mustermann" automatisch in nur "TE543248" um
   function formatBedienerInput(fieldId) {
     const field = document.getElementById(fieldId);
     if (!field || !field.value) return;
@@ -688,7 +699,7 @@
     const val = field.value.trim();
     if (val.includes(' - ')) {
       const parts = val.split(' - ');
-      field.value = parts[0].trim(); // Nur Personalnummer verwenden
+      field.value = parts[0].trim();
     }
   }
 
@@ -768,8 +779,8 @@
 
   function sortArchiveEntries(archive) {
     return archive.sort((a, b) => {
-      const dateA = a.datum || '';
-      const dateB = b.datum || '';
+      const dateA = normalizeDateString(a.datum);
+      const dateB = normalizeDateString(b.datum);
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA);
       }
@@ -777,7 +788,6 @@
     });
   }
 
-  // PERSONAL-VERWALTUNG FUNCTIONS
   function openPersonnelModal() {
     renderPersonnelList();
     document.getElementById('personnelModal').style.display = 'flex';
@@ -850,7 +860,8 @@
 
     const currentData = getCurrentFormData();
     
-    const datum = currentData.datum || new Date().toISOString().split('T')[0];
+    const rawDatum = currentData.datum || new Date().toISOString().split('T')[0];
+    const datum = normalizeDateString(rawDatum);
     const schicht = currentData.schicht || 'Unbekannt';
 
     if (currentEditingArchiveId) {
@@ -874,7 +885,7 @@
         });
       }
     } else {
-      const existingIndex = archive.findIndex(e => e.datum === datum && e.schicht === schicht);
+      const existingIndex = archive.findIndex(e => normalizeDateString(e.datum) === datum && e.schicht === schicht);
 
       if (existingIndex !== -1) {
         const overwrite = confirm(
@@ -935,6 +946,7 @@
     }
   }
 
+  // Korrigierter Archiv-Filter mit normiertem Datumsvergleich
   function renderArchiveList(filterDate = null) {
     const list = document.getElementById('archiveList');
     list.innerHTML = '';
@@ -947,7 +959,8 @@
     archive = sortArchiveEntries(archive);
 
     if (filterDate) {
-      archive = archive.filter(item => item.datum === filterDate);
+      const normFilter = normalizeDateString(filterDate);
+      archive = archive.filter(item => normalizeDateString(item.datum) === normFilter);
     }
 
     if (archive.length === 0) {
@@ -1154,7 +1167,6 @@
         ausschussBlockHTML = '<div class="pdf-val">Kein Ausschuss</div>';
       }
 
-      // 1. Wheels Wartung: Nur anzeigen, wenn Checkbox aktiv ist
       const wartungBlockHTML = wartungGeklickt ? `
         <div class="pdf-block">
           <div class="pdf-block-title orange">Wheels Wartung</div>
@@ -1167,7 +1179,6 @@
         </div>
       `;
 
-      // 2. To-Do Folgeschicht: Nur anzeigen, wenn Text vorhanden ist
       const todoBlockHTML = todo ? `
         <div class="pdf-block">
           <div class="pdf-block-title green">To-Do Folgeschicht</div>
@@ -1180,7 +1191,6 @@
         </div>
       `;
 
-      // 3. Stationen, Defekte & Material (Sonstige Störungen): Nur anzeigen, was auch eingetragen wurde
       let stoerungenHTML = '';
       if (stat) stoerungenHTML += `<div class="pdf-val"><b>Stationen:</b> ${stat}</div>`;
       if (def) stoerungenHTML += `<div class="pdf-val"><b>Defekte:</b> ${def}</div>`;
