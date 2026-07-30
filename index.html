@@ -19,6 +19,10 @@
       --text-muted: #9ca3af;
       --border-color: #2d3748;
 
+      /* Farb-Definitionen für Textauswahl (Nur Schwarz & Rot) */
+      --color-black: #000000;
+      --color-red: #dc2626;
+
       /* Anlagen-Farben */
       --anl-801-border: #3b82f6;
       --anl-801-bg: #131c2e;
@@ -45,12 +49,44 @@
     .header-buttons { display: flex; gap: 8px; }
 
     .card { background: var(--card-bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color); }
-    .card-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--accent-blue); display: flex; justify-content: space-between; }
+    .card-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--accent-blue); display: flex; justify-content: space-between; align-items: center; }
     .card-title.red { border-bottom-color: var(--accent-red); }
     .card-title.green { border-bottom-color: var(--accent-green); }
     .card-title.orange { border-bottom-color: var(--accent-orange); }
 
-    label { display: block; font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 2px; font-weight: 500; }
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      margin-bottom: 2px;
+    }
+    .field-header label { margin: 0; }
+
+    /* Farbauswahlleiste für Schwarz & Rot */
+    .color-picker {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .color-btn {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 1px solid #ffffff;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .color-btn:hover, .color-btn.active {
+      opacity: 1;
+      transform: scale(1.25);
+      border-width: 2px;
+    }
+    .color-btn.c-black { background-color: #ffffff; border-color: #000; }
+    .color-btn.c-red { background-color: var(--color-red); border-color: #fff; }
+
+    label { display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 500; }
     input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 6px 8px; background: #0b111e; border: 1px solid var(--border-color); border-radius: 5px; color: #fff; font-size: 0.82rem; outline: none; }
     input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
     
@@ -59,6 +95,10 @@
       min-height: 42px; 
       line-height: 1.3;
     }
+
+    /* Farbige Textausgaben im UI */
+    textarea.txt-black { color: #ffffff !important; }
+    textarea.txt-red { color: #ef4444 !important; font-weight: 600; }
 
     /* Checkbox Styling */
     .checkbox-container {
@@ -360,6 +400,16 @@
           <option value="Unterbrechung">Unterbrechung</option>
         `;
 
+        // Farbauswahlleiste (Nur Schwarz & Rot)
+        function createColorPicker(fieldId) {
+          return `
+            <div class="color-picker" id="picker_${fieldId}">
+              <div class="color-btn c-black active" title="Schwarz" onclick="setTextFieldColor('${fieldId}', 'black')"></div>
+              <div class="color-btn c-red" title="Rot" onclick="setTextFieldColor('${fieldId}', 'red')"></div>
+            </div>
+          `;
+        }
+
         anlagen.forEach(a => {
           document.write(`
             <div class="anlage-column col-${a}">
@@ -397,8 +447,13 @@
                     <select id="ausschuss_grund_${a}_1">${ursachenOptions}</select>
                   </div>
                 </div>
-                <label>Details zum Fehler</label>
-                <textarea id="ausschuss_details_${a}_1" placeholder="Beschreibung des Fehlers"></textarea>
+                
+                <div class="field-header">
+                  <label>Details zum Fehler</label>
+                  ${createColorPicker(`ausschuss_details_${a}_1`)}
+                </div>
+                <textarea id="ausschuss_details_${a}_1" class="txt-black" placeholder="Beschreibung des Fehlers"></textarea>
+                <input type="hidden" id="color_ausschuss_details_${a}_1" value="black">
               </div>
 
               <div class="card">
@@ -410,18 +465,37 @@
               </div>
 
               <div class="card">
-                <div class="card-title green">To-Do Folgeschicht</div>
-                <textarea id="todo_${a}" placeholder="Was muss die nächste Schicht erledigen?"></textarea>
+                <div class="card-title green">
+                  <span>To-Do Folgeschicht</span>
+                  ${createColorPicker(`todo_${a}`)}
+                </div>
+                <textarea id="todo_${a}" class="txt-black" placeholder="Was muss die nächste Schicht erledigen?"></textarea>
+                <input type="hidden" id="color_todo_${a}" value="black">
               </div>
 
               <div class="card" style="flex: 1;">
                 <div class="card-title">Stationen & Störungen</div>
-                <label>Auffälligkeiten an Stationen</label>
-                <textarea id="stationen_${a}" placeholder="Abwickeln, Schweißen, Hot Wash, U-Clean..."></textarea>
-                <label>Defekte & techn. Störungen</label>
-                <textarea id="defekte_${a}" placeholder="Was war defekt?"></textarea>
-                <label>Werkzeug / Material / KVP</label>
-                <textarea id="material_${a}" placeholder="Bestellungen, fehlende Teile, KVP"></textarea>
+                
+                <div class="field-header">
+                  <label>Auffälligkeiten an Stationen</label>
+                  ${createColorPicker(`stationen_${a}`)}
+                </div>
+                <textarea id="stationen_${a}" class="txt-black" placeholder="Abwickeln, Schweißen, Hot Wash, U-Clean..."></textarea>
+                <input type="hidden" id="color_stationen_${a}" value="black">
+
+                <div class="field-header">
+                  <label>Defekte & techn. Störungen</label>
+                  ${createColorPicker(`defekte_${a}`)}
+                </div>
+                <textarea id="defekte_${a}" class="txt-black" placeholder="Was war defekt?"></textarea>
+                <input type="hidden" id="color_defekte_${a}" value="black">
+
+                <div class="field-header">
+                  <label>Werkzeug / Material / KVP</label>
+                  ${createColorPicker(`material_${a}`)}
+                </div>
+                <textarea id="material_${a}" class="txt-black" placeholder="Bestellungen, fehlende Teile, KVP"></textarea>
+                <input type="hidden" id="color_material_${a}" value="black">
               </div>
             </div>
           `);
@@ -502,6 +576,34 @@
     { pnr: 'TE123456', name: 'J. Schmidt' },
     { pnr: 'TE987654', name: 'A. Weber' }
   ];
+
+  function setTextFieldColor(fieldId, colorName) {
+    const textarea = document.getElementById(fieldId);
+    const hiddenColorInput = document.getElementById('color_' + fieldId);
+    const picker = document.getElementById('picker_' + fieldId);
+
+    if (textarea && hiddenColorInput) {
+      textarea.className = 'txt-' + colorName;
+      hiddenColorInput.value = colorName;
+
+      if (picker) {
+        picker.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = picker.querySelector('.c-' + colorName);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+
+      formHasUnsavedChanges = true;
+      saveToLocalStorage();
+      if (currentEditingArchiveId) archiveCurrentState();
+    }
+  }
+
+  function getColorHex(colorName) {
+    if (colorName === 'red') {
+      return '#dc2626'; // Rot
+    }
+    return '#1e293b'; // Schwarz/Dunkelgrau für PDF
+  }
 
   function setToTodayDate() {
     const datumEl = document.getElementById('datum');
@@ -633,6 +735,14 @@
         }
       }
     });
+
+    ['801', '802', '803', '804'].forEach(a => {
+      ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
+        const colorVal = localStorage.getItem('schichtbuch_color_' + fieldId) || 'black';
+        setTextFieldColor(fieldId, colorVal);
+      });
+    });
+
     if (!localStorage.getItem('schichtbuch_datum')) {
       setToTodayDate();
     }
@@ -915,16 +1025,13 @@
 
     const savedArtAkt = {};
     const savedArtFolge = {};
-    const savedBediener = {};
 
     ['801', '802', '803', '804'].forEach(a => {
       const artAktEl = document.getElementById(`art_akt_${a}`);
       const artFolgeEl = document.getElementById(`art_folge_${a}`);
-      const bedienerEl = document.getElementById(`bediener_${a}`);
       
       savedArtAkt[a] = artAktEl ? artAktEl.value : '';
       savedArtFolge[a] = artFolgeEl ? artFolgeEl.value : '';
-      savedBediener[a] = bedienerEl ? bedienerEl.value : '';
     });
 
     currentEditingArchiveId = null;
@@ -946,7 +1053,11 @@
 
       if (artAktEl) artAktEl.value = savedArtAkt[a] || '';
       if (artFolgeEl) artFolgeEl.value = savedArtFolge[a] || '';
-      if (bedienerEl) bedienerEl.value = savedBediener[a] || '';
+      if (bedienerEl) bedienerEl.value = '';
+
+      ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
+        setTextFieldColor(fieldId, 'black');
+      });
     });
 
     saveToLocalStorage();
@@ -978,6 +1089,13 @@
               field.value = entry.formData[key];
             }
           }
+        });
+
+        ['801', '802', '803', '804'].forEach(a => {
+          ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
+            const colorVal = entry.formData['color_' + fieldId] || 'black';
+            setTextFieldColor(fieldId, colorVal);
+          });
         });
         
         currentEditingArchiveId = id;
@@ -1033,6 +1151,7 @@
     ['801', '802', '803', '804'].forEach(a => {
       const getVal = id => (document.getElementById(id) ? document.getElementById(id).value : '').trim();
       const getChk = id => (document.getElementById(id) ? document.getElementById(id).checked : false);
+      const getColor = id => (document.getElementById('color_' + id) ? document.getElementById('color_' + id).value : 'black');
 
       const bedienerAnlage = getVal(`bediener_${a}`) || '-';
       const gutMenge = getVal(`gut_menge_${a}`) || '0';
@@ -1047,13 +1166,14 @@
       const menge = getVal(`ausschuss_menge_${a}_1`) || '0';
       const grund = getVal(`ausschuss_grund_${a}_1`);
       const det = getVal(`ausschuss_details_${a}_1`);
+      const detColor = getColor(`ausschuss_details_${a}_1`);
 
       let ausschussBlockHTML = '';
       if ((menge !== '0' && menge !== '') || grund !== 'Kein Ausschuss' || det !== '') {
         ausschussBlockHTML = `
           <div style="margin-bottom: 3px; padding-bottom: 2px;">
             <b>Menge:</b> <span style="color:#dc2626; font-weight:bold;">${menge}</span> | <b>Ursache:</b> ${grund}
-            ${det ? `<br><i>${det}</i>` : ''}
+            ${det ? `<br><i style="color: ${getColorHex(detColor)}; font-weight: 600;">${det}</i>` : ''}
           </div>
         `;
       } else {
@@ -1072,10 +1192,11 @@
         </div>
       `;
 
+      const todoColor = getColor(`todo_${a}`);
       const todoBlockHTML = todo ? `
         <div class="pdf-block">
           <div class="pdf-block-title green">To-Do Folgeschicht</div>
-          <div class="pdf-val">${todo}</div>
+          <div class="pdf-val" style="color: ${getColorHex(todoColor)}; font-weight: 600;">${todo}</div>
         </div>
       ` : `
         <div class="pdf-block">
@@ -1085,9 +1206,9 @@
       `;
 
       let stoerungenHTML = '';
-      if (stat) stoerungenHTML += `<div class="pdf-val"><b>Stationen:</b> ${stat}</div>`;
-      if (def) stoerungenHTML += `<div class="pdf-val"><b>Defekte:</b> ${def}</div>`;
-      if (mat) stoerungenHTML += `<div class="pdf-val"><b>Material/KVP:</b> ${mat}</div>`;
+      if (stat) stoerungenHTML += `<div class="pdf-val"><b>Stationen:</b> <span style="color: ${getColorHex(getColor('stationen_' + a))}; font-weight: 600;">${stat}</span></div>`;
+      if (def) stoerungenHTML += `<div class="pdf-val"><b>Defekte:</b> <span style="color: ${getColorHex(getColor('defekte_' + a))}; font-weight: 600;">${def}</span></div>`;
+      if (mat) stoerungenHTML += `<div class="pdf-val"><b>Material/KVP:</b> <span style="color: ${getColorHex(getColor('material_' + a))}; font-weight: 600;">${mat}</span></div>`;
 
       const stoerungenBlockHTML = `
         <div class="pdf-block" style="flex: 1;">
