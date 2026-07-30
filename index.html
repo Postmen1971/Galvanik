@@ -42,10 +42,7 @@
     }
     h1 { font-size: 1.35rem; color: #ffffff; font-weight: 700; letter-spacing: 0.5px; }
 
-    .header-buttons {
-      display: flex;
-      gap: 8px;
-    }
+    .header-buttons { display: flex; gap: 8px; }
 
     .card { background: var(--card-bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color); }
     .card-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--accent-blue); display: flex; justify-content: space-between; }
@@ -60,7 +57,6 @@
     textarea { 
       resize: vertical; 
       min-height: 42px; 
-      field-sizing: content;
       line-height: 1.3;
     }
 
@@ -104,7 +100,7 @@
       align-items: center;
     }
 
-    /* PC 4-Spalten Layout für Anlagen */
+    /* PC 4-Spalten Layout */
     .pc-anlagen-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -168,7 +164,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.2s;
     }
     .btn-submit:hover { background: #2563eb; }
 
@@ -187,7 +182,6 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: background 0.2s;
     }
     .btn-reset:hover { background: #4b5563; }
 
@@ -203,7 +197,6 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.2s;
     }
     .btn-personnel { background: #4b5563; }
     .btn-archive:hover { background: #1d4ed8; }
@@ -231,7 +224,7 @@
       cursor: pointer;
     }
 
-    /* Modal / Archiv & Personal CSS */
+    /* Modal Modul */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
     .modal-content { background: var(--card-bg); border-radius: 8px; width: 100%; max-width: 550px; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-color); padding: 14px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
@@ -282,15 +275,7 @@
       border-radius: 6px;
       border: 1px solid var(--border-color);
     }
-    .btn-add-personnel {
-      background: var(--accent-green);
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .btn-add-personnel { background: var(--accent-green); color: #fff; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
     .confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .btn-modal-action { padding: 10px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
@@ -298,138 +283,38 @@
     .btn-modal-secondary { background: #4b5563; color: #fff; }
     .btn-modal-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
 
-    /* =========================================================
-       PDF DESIGN (A4 Querformat: 1123px x 794px)
-       ========================================================= */
-    #pdf-container {
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      width: 1123px;
-      background: #ffffff;
-      color: #1f2937;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    .pdf-page {
-      width: 1123px;
-      height: 794px;
-      padding: 25px;
-      background: #ffffff;
-      box-sizing: border-box;
-      position: relative;
-    }
-
-    .pdf-header {
-      background: #1e293b;
-      color: #ffffff;
-      padding: 10px 18px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
+    /* PDF Design (A4 Querformat) */
+    #pdf-container { position: absolute; left: -9999px; top: -9999px; width: 1123px; background: #ffffff; color: #1f2937; font-family: Arial, sans-serif; }
+    .pdf-page { width: 1123px; height: 794px; padding: 25px; background: #ffffff; position: relative; }
+    .pdf-header { background: #1e293b; color: #ffffff; padding: 10px 18px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     .pdf-header h2 { font-size: 15pt; font-weight: bold; }
     .pdf-header .badge { background: #3b82f6; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 10pt; font-weight: bold; }
-
-    .pdf-meta-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
+    .pdf-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
     .pdf-meta-item label { font-size: 7pt; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; }
     .pdf-meta-item div { font-size: 9.5pt; font-weight: 600; color: #0f172a; }
-
-    .pdf-anlagen-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .pdf-anlage-card {
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      background: #ffffff;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      font-size: 8pt;
-    }
-
-    .pdf-anlage-title {
-      background: #0f172a;
-      color: #ffffff;
-      font-weight: bold;
-      text-align: center;
-      padding: 5px;
-      font-size: 9.5pt;
-    }
-
+    .pdf-anlagen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .pdf-anlage-card { border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; overflow: hidden; display: flex; flex-direction: column; font-size: 8pt; }
+    .pdf-anlage-title { background: #0f172a; color: #ffffff; font-weight: bold; text-align: center; padding: 5px; font-size: 9.5pt; }
     .pdf-card-body { padding: 6px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-
-    .pdf-block {
-      background: #f8fafc;
-      border: 1px solid #f1f5f9;
-      padding: 5px;
-      border-radius: 4px;
-      min-height: 28px;
-    }
-
-    .pdf-block-title {
-      font-size: 7pt;
-      font-weight: bold;
-      text-transform: uppercase;
-      color: #475569;
-      margin-bottom: 2px;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 2px;
-    }
-
+    .pdf-block { background: #f8fafc; border: 1px solid #f1f5f9; padding: 5px; border-radius: 4px; min-height: 28px; }
+    .pdf-block-title { font-size: 7pt; font-weight: bold; text-transform: uppercase; color: #475569; margin-bottom: 2px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .pdf-block-title.red { color: #dc2626; border-bottom-color: #fca5a5; }
     .pdf-block-title.green { color: #059669; border-bottom-color: #6ee7b7; }
     .pdf-block-title.orange { color: #d97706; border-bottom-color: #fcd34d; }
-
     .pdf-val { font-size: 8pt; color: #1e293b; white-space: pre-wrap; word-break: break-word; }
-
-    .pdf-footer {
-      position: absolute;
-      bottom: 12px;
-      left: 25px;
-      right: 25px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 5px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 7pt;
-      color: #94a3b8;
-    }
+    .pdf-footer { position: absolute; bottom: 12px; left: 25px; right: 25px; border-top: 1px solid #e2e8f0; padding-top: 5px; display: flex; justify-content: space-between; font-size: 7pt; color: #94a3b8; }
   </style>
 </head>
 <body>
 
-<!-- Datalist für Bediener-Drop-Down / Vorschläge -->
-<datalist id="bedienerDatalist">
-  <!-- Dynamisch aus LocalStorage gefüllt -->
-</datalist>
+<datalist id="bedienerDatalist"></datalist>
 
 <div class="container" id="main-form">
   <div class="header-bar">
     <h1>Schichtbuch Bandgalvanik</h1>
     <div class="header-buttons">
-      <button type="button" class="btn-personnel" onclick="openPersonnelModal()">
-        👥 Personal-Liste
-      </button>
-      <button type="button" class="btn-archive" onclick="openArchiveModal()">
-        📁 Schichtbuch-Archiv
-      </button>
+      <button type="button" class="btn-personnel" onclick="openPersonnelModal()">👥 Personal-Liste</button>
+      <button type="button" class="btn-archive" onclick="openArchiveModal()">📁 Schichtbuch-Archiv</button>
     </div>
   </div>
 
@@ -438,7 +323,6 @@
     <button type="button" class="btn-cancel-edit" onclick="cancelEditMode()">Bearbeitung abbrechen & neue Schicht starten</button>
   </div>
 
-  <!-- Kopfdaten (Datum & Schicht) -->
   <div class="top-meta-card">
     <div class="top-meta-grid">
       <div>
@@ -457,7 +341,6 @@
   </div>
 
   <form id="schichtForm">
-    <!-- PC Grid: 4 Spalten Nebeneinander -->
     <div class="pc-anlagen-grid">
       <script>
         const anlagen = ['801', '802', '803', '804'];
@@ -482,10 +365,8 @@
             <div class="anlage-column col-${a}">
               <div class="anlage-header-badge">ANLAGE ${a}</div>
               
-              <!-- Produktion & Artikel mit eigenem Bediener -->
               <div class="card">
                 <div class="card-title green">Produktion & Artikel</div>
-                
                 <label for="bediener_${a}">Bediener (Pers.-Nr. / Name)</label>
                 <input type="text" id="bediener_${a}" list="bedienerDatalist" placeholder="Pers.-Nr. wählen/tippen" onchange="formatBedienerInput('bediener_${a}')">
 
@@ -494,20 +375,18 @@
                 
                 <div class="grid-2" style="margin-top:3px;">
                   <div>
-                    <label>Aktuelle Art.-Nr.</label>
+                    <label>Artikelnummer</label>
                     <input type="text" id="art_akt_${a}" placeholder="Artikel-Nr.">
                   </div>
                   <div>
-                    <label>Folge-Art.-Nr.</label>
-                    <input type="text" id="art_folge_${a}" placeholder="Nächste Art.-Nr.">
+                    <label>Fertigungsauftrag</label>
+                    <input type="text" id="art_folge_${a}" maxlength="20" placeholder="12-stellige FA-Nr.">
                   </div>
                 </div>
               </div>
 
-              <!-- Ausschuss & Fehler (Einziges Eingabefeld) -->
               <div class="card">
                 <div class="card-title red">Ausschuss & Fehler</div>
-                
                 <div class="grid-2">
                   <div>
                     <label>Ausschuss (m / Stk)</label>
@@ -522,7 +401,6 @@
                 <textarea id="ausschuss_details_${a}_1" placeholder="Beschreibung des Fehlers"></textarea>
               </div>
 
-              <!-- Wheels Wartung -->
               <div class="card">
                 <div class="card-title orange">Wheels Wartung</div>
                 <label class="checkbox-container">
@@ -531,13 +409,11 @@
                 </label>
               </div>
 
-              <!-- To-Do Folgeschicht -->
               <div class="card">
                 <div class="card-title green">To-Do Folgeschicht</div>
                 <textarea id="todo_${a}" placeholder="Was muss die nächste Schicht erledigen?"></textarea>
               </div>
 
-              <!-- Stationen & Besonderheiten -->
               <div class="card" style="flex: 1;">
                 <div class="card-title">Stationen & Störungen</div>
                 <label>Auffälligkeiten an Stationen</label>
@@ -547,54 +423,40 @@
                 <label>Werkzeug / Material / KVP</label>
                 <textarea id="material_${a}" placeholder="Bestellungen, fehlende Teile, KVP"></textarea>
               </div>
-
             </div>
           `);
         });
       </script>
     </div>
 
-    <!-- Symmetrische, zentrierte Buttons -->
     <div class="action-buttons-container">
-      <button type="button" id="submitBtn" class="btn-submit" onclick="generateShiftPDF()">
-        🖨️ PDF Erstellen & Öffnen
-      </button>
-      <button type="button" class="btn-reset" onclick="openResetModal()">
-        🔄 Schicht zurückstellen / archivieren
-      </button>
+      <button type="button" id="submitBtn" class="btn-submit" onclick="generateShiftPDF()">🖨️ PDF Erstellen & Öffnen</button>
+      <button type="button" class="btn-reset" onclick="openResetModal()">🔄 Schicht zurückstellen / archivieren</button>
     </div>
   </form>
 </div>
 
-<!-- ARCHIV MODAL -->
 <div id="archiveModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <div class="modal-title">Schichtbuch-Archiv</div>
       <button class="modal-close" onclick="closeArchiveModal()">&times;</button>
     </div>
-    
     <div class="archive-search-box">
       <label for="archiveSearchDate">🔍 Nach Datum suchen:</label>
       <input type="date" id="archiveSearchDate" onchange="filterArchiveByDate()">
       <button type="button" class="btn-reset-filter" onclick="resetArchiveSearch()">Alle anzeigen</button>
     </div>
-
-    <div class="archive-list" id="archiveList">
-      <!-- Dynamische Liste -->
-    </div>
+    <div class="archive-list" id="archiveList"></div>
   </div>
 </div>
 
-<!-- PERSONAL-VERWALTUNG MODAL -->
 <div id="personnelModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <div class="modal-title">Personal-Liste verwalten</div>
       <button class="modal-close" onclick="closePersonnelModal()">&times;</button>
     </div>
-    
-    <!-- Formular zum Hinzufügen -->
     <div class="personnel-add-form">
       <div>
         <label style="margin:0;">Pers.-Nr.</label>
@@ -608,14 +470,10 @@
         <button type="button" class="btn-add-personnel" onclick="addPersonnelEntry()">+ Hinzufügen</button>
       </div>
     </div>
-
-    <div class="personnel-list" id="personnelList">
-      <!-- Dynamische Bedienerliste -->
-    </div>
+    <div class="personnel-list" id="personnelList"></div>
   </div>
 </div>
 
-<!-- RESET MODAL -->
 <div id="resetModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -626,15 +484,9 @@
       Möchtest du diese Schicht im Archiv speichern oder das Formular einfach leeren, ohne zu archivieren?
     </p>
     <div class="confirm-actions">
-      <button class="btn-modal-action btn-modal-primary" onclick="confirmReset(true)">
-        💾 Archivieren & Neues Protokoll starten
-      </button>
-      <button class="btn-modal-action btn-modal-secondary" onclick="confirmReset(false)">
-        🗑️ Nicht archivieren (Nur zurückstellen)
-      </button>
-      <button class="btn-modal-action btn-modal-cancel" onclick="closeResetModal()">
-        Abbrechen
-      </button>
+      <button class="btn-modal-action btn-modal-primary" onclick="confirmReset(true)">💾 Archivieren & Neues Protokoll starten</button>
+      <button class="btn-modal-action btn-modal-secondary" onclick="confirmReset(false)">🗑️ Nicht archivieren (Nur zurückstellen)</button>
+      <button class="btn-modal-action btn-modal-cancel" onclick="closeResetModal()">Abbrechen</button>
     </div>
   </div>
 </div>
@@ -645,14 +497,12 @@
   let currentEditingArchiveId = null;
   let formHasUnsavedChanges = false;
 
-  // Standard-Personalliste initialisieren
   const defaultPersonnel = [
     { pnr: 'TE543248', name: 'M. Mustermann' },
     { pnr: 'TE123456', name: 'J. Schmidt' },
     { pnr: 'TE987654', name: 'A. Weber' }
   ];
 
-  // Setzt das Datumseingabefeld explizit auf das heutige Tagesdatum
   function setToTodayDate() {
     const datumEl = document.getElementById('datum');
     if (datumEl) {
@@ -660,7 +510,6 @@
     }
   }
 
-  // Hilfsfunktion: Wandelt Datumsangaben zuverlässig in YYYY-MM-DD um
   function normalizeDateString(dateStr) {
     if (!dateStr) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
@@ -672,16 +521,15 @@
     return `${year}-${month}-${day}`;
   }
 
-  // Prüft, ob ein Eintrag zum gesuchten Datum passt (Schichtdatum ODER Archivierungsdatum)
   function matchesFilterDate(item, filterDateStr) {
     if (!filterDateStr) return true;
     
-    const normFilter = normalizeDateString(filterDateStr); // YYYY-MM-DD
-    const normShiftDate = normalizeDateString(item.datum); // YYYY-MM-DD
+    const normFilter = normalizeDateString(filterDateStr);
+    const normShiftDate = normalizeDateString(item.datum);
     
     if (normShiftDate === normFilter) return true;
     
-    const parts = normFilter.split('-'); // ["YYYY", "MM", "DD"]
+    const parts = normFilter.split('-');
     if (parts.length === 3) {
       const year = parts[0];
       const monthWithZero = parts[1];
@@ -689,15 +537,15 @@
       const dayWithZero = parts[2];
       const dayNoZero = String(parseInt(parts[2], 10));
 
-      const deVariant1 = `${dayNoZero}.${monthNoZero}.${year}`; // z.B. 30.7.2026
-      const deVariant2 = `${dayWithZero}.${monthWithZero}.${year}`; // z.B. 30.07.2026
-      const isoVariant = normFilter; // 2026-07-30
+      const de1 = `${dayNoZero}.${monthNoZero}.${year}`;
+      const de2 = `${dayWithZero}.${monthWithZero}.${year}`;
+      const iso = normFilter;
 
       const ts = item.timestamp || '';
       const shift = item.datum || '';
 
-      if (ts.includes(deVariant1) || ts.includes(deVariant2) || ts.includes(isoVariant)) return true;
-      if (shift.includes(deVariant1) || shift.includes(deVariant2) || shift.includes(isoVariant)) return true;
+      if (ts.includes(de1) || ts.includes(de2) || ts.includes(iso)) return true;
+      if (shift.includes(de1) || shift.includes(de2) || shift.includes(iso)) return true;
     }
 
     return false;
@@ -886,7 +734,6 @@
     renderPersonnelList();
   }
 
-  // PRÜFUNG & ARCHIVIERUNG
   function archiveCurrentState() {
     let archive = [];
     try {
@@ -1058,7 +905,6 @@
     document.getElementById('resetModal').style.display = 'none';
   }
 
-  // Korrigiertes Zurückstellen: Setzt das Datum nach dem Leeren wieder verlässlich auf das HEUTIGE Tagesdatum
   function confirmReset(shouldArchive) {
     if (shouldArchive) {
       const success = archiveCurrentState();
@@ -1072,31 +918,35 @@
     const savedBediener = {};
 
     ['801', '802', '803', '804'].forEach(a => {
-      savedArtAkt[a] = formElement(`art_akt_${a}`).value;
-      savedArtFolge[a] = formElement(`art_folge_${a}`).value;
-      savedBediener[a] = formElement(`bediener_${a}`).value;
+      const artAktEl = document.getElementById(`art_akt_${a}`);
+      const artFolgeEl = document.getElementById(`art_folge_${a}`);
+      const bedienerEl = document.getElementById(`bediener_${a}`);
+      
+      savedArtAkt[a] = artAktEl ? artAktEl.value : '';
+      savedArtFolge[a] = artFolgeEl ? artFolgeEl.value : '';
+      savedBediener[a] = bedienerEl ? bedienerEl.value : '';
     });
 
     currentEditingArchiveId = null;
 
-    // Formular-Eingaben aus dem LocalStorage bereinigen
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('schichtbuch_') && key !== 'schichtbuch_archive' && key !== 'schichtbuch_personnel') {
         localStorage.removeItem(key);
       }
     });
 
-    // Formular zurücksetzen
     document.getElementById('schichtForm').reset();
     
-    // HEUTIGES DATUM SETZEN
     setToTodayDate();
 
-    // Artikelnummern & Bediener wieder einfügen
     ['801', '802', '803', '804'].forEach(a => {
-      formElement(`art_akt_${a}`).value = savedArtAkt[a] || '';
-      formElement(`art_folge_${a}`).value = savedArtFolge[a] || '';
-      formElement(`bediener_${a}`).value = savedBediener[a] || '';
+      const artAktEl = document.getElementById(`art_akt_${a}`);
+      const artFolgeEl = document.getElementById(`art_folge_${a}`);
+      const bedienerEl = document.getElementById(`bediener_${a}`);
+
+      if (artAktEl) artAktEl.value = savedArtAkt[a] || '';
+      if (artFolgeEl) artFolgeEl.value = savedArtFolge[a] || '';
+      if (bedienerEl) bedienerEl.value = savedBediener[a] || '';
     });
 
     saveToLocalStorage();
@@ -1141,6 +991,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    setToTodayDate();
     updateDatalist();
     loadFromLocalStorage();
     document.querySelectorAll('input, select, textarea').forEach(el => {
@@ -1172,27 +1023,30 @@
 
     archiveCurrentState();
 
-    const datumVal = formElement('datum').value || '-';
-    const schichtVal = formElement('schicht').value;
+    const datumVal = (document.getElementById('datum') ? document.getElementById('datum').value : '') || '-';
+    const schichtVal = (document.getElementById('schicht') ? document.getElementById('schicht').value : '') || '-';
 
     const pdfContainer = document.getElementById('pdf-container');
     pdfContainer.innerHTML = '';
 
     let anlagenHTML = '';
     ['801', '802', '803', '804'].forEach(a => {
-      const bedienerAnlage = formElement(`bediener_${a}`).value || '-';
-      const gutMenge = formElement(`gut_menge_${a}`).value || '0';
-      const artAkt = formElement(`art_akt_${a}`).value || '-';
-      const artFolge = formElement(`art_folge_${a}`).value || '-';
-      const todo = (formElement(`todo_${a}`).value || '').trim();
-      const stat = (formElement(`stationen_${a}`).value || '').trim();
-      const def = (formElement(`defekte_${a}`).value || '').trim();
-      const mat = (formElement(`material_${a}`).value || '').trim();
-      const wartungGeklickt = formElement(`wartung_${a}`).checked;
+      const getVal = id => (document.getElementById(id) ? document.getElementById(id).value : '').trim();
+      const getChk = id => (document.getElementById(id) ? document.getElementById(id).checked : false);
 
-      const menge = formElement(`ausschuss_menge_${a}_1`).value || '0';
-      const grund = formElement(`ausschuss_grund_${a}_1`).value;
-      const det = formElement(`ausschuss_details_${a}_1`).value;
+      const bedienerAnlage = getVal(`bediener_${a}`) || '-';
+      const gutMenge = getVal(`gut_menge_${a}`) || '0';
+      const artAkt = getVal(`art_akt_${a}`) || '-';
+      const artFolge = getVal(`art_folge_${a}`) || '-';
+      const todo = getVal(`todo_${a}`);
+      const stat = getVal(`stationen_${a}`);
+      const def = getVal(`defekte_${a}`);
+      const mat = getVal(`material_${a}`);
+      const wartungGeklickt = getChk(`wartung_${a}`);
+
+      const menge = getVal(`ausschuss_menge_${a}_1`) || '0';
+      const grund = getVal(`ausschuss_grund_${a}_1`);
+      const det = getVal(`ausschuss_details_${a}_1`);
 
       let ausschussBlockHTML = '';
       if ((menge !== '0' && menge !== '') || grund !== 'Kein Ausschuss' || det !== '') {
@@ -1252,7 +1106,7 @@
               <div class="pdf-val"><b>Bediener:</b> ${bedienerAnlage}</div>
               <div class="pdf-val"><b>Gut-Menge:</b> ${gutMenge}</div>
               <div class="pdf-val"><b>Artikel-Nr:</b> ${artAkt}</div>
-              <div class="pdf-val"><b>Folge-Art.:</b> ${artFolge}</div>
+              <div class="pdf-val"><b>Fertigungsauftrag:</b> ${artFolge}</div>
             </div>
 
             <div class="pdf-block">
@@ -1304,11 +1158,7 @@
     `;
 
     const pageEl = document.getElementById('pdf-shift-page');
-    const canvas = await html2canvas(pageEl, {
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
+    const canvas = await html2canvas(pageEl, { scale: 2, useCORS: true, logging: false });
 
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
     const { jsPDF } = window.jspdf;
