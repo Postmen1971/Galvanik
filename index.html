@@ -8,30 +8,34 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
-      --bg-color: #0b0f17;
-      --card-bg: #161f2e;
-      --accent-red: #ef4444;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-orange: #f59e0b;
-      --accent-purple: #8b5cf6;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --border-color: #2d3748;
+      /* Helles, modernes TE & ERNI Farbkonzept */
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --te-orange: #ee7d00;
+      --te-orange-hover: #d66f00;
+      --erni-blue: #007ac3;
+      --erni-blue-hover: #0063a0;
+      
+      --accent-red: #dc2626;
+      --accent-green: #059669;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --input-bg: #f8fafc;
 
-      /* Farb-Definitionen für Textauswahl (Nur Schwarz & Rot) */
-      --color-black: #000000;
+      /* Farb-Definitionen für Textauswahl (Schwarz & Rot) */
+      --color-black: #0f172a;
       --color-red: #dc2626;
 
       /* Anlagen-Farben */
-      --anl-801-border: #3b82f6;
-      --anl-801-bg: #131c2e;
-      --anl-802-border: #10b981;
-      --anl-802-bg: #0f2520;
-      --anl-803-border: #8b5cf6;
-      --anl-803-bg: #1c172d;
-      --anl-804-border: #f59e0b;
-      --anl-804-bg: #271d10;
+      --anl-801-border: #007ac3;
+      --anl-801-bg: #f0f9ff;
+      --anl-802-border: #059669;
+      --anl-802-bg: #f0fdf4;
+      --anl-803-border: #ee7d00;
+      --anl-803-bg: #fff7ed;
+      --anl-804-border: #7c3aed;
+      --anl-804-bg: #f5f3ff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -42,17 +46,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      background: #ffffff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border-left: 6px solid var(--te-orange);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    h1 { font-size: 1.35rem; color: #ffffff; font-weight: 700; letter-spacing: 0.5px; }
+    h1 { font-size: 1.35rem; color: var(--erni-blue); font-weight: 800; letter-spacing: 0.5px; }
 
     .header-buttons { display: flex; gap: 8px; }
 
-    .card { background: var(--card-bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color); }
-    .card-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--accent-blue); display: flex; justify-content: space-between; align-items: center; }
-    .card-title.red { border-bottom-color: var(--accent-red); }
-    .card-title.green { border-bottom-color: var(--accent-green); }
-    .card-title.orange { border-bottom-color: var(--accent-orange); }
+    .card { background: var(--card-bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .card-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--erni-blue); display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+    .card-title.red { border-bottom-color: var(--accent-red); color: var(--accent-red); }
+    .card-title.green { border-bottom-color: var(--accent-green); color: var(--accent-green); }
+    .card-title.orange { border-bottom-color: var(--te-orange); color: var(--te-orange); }
 
     .field-header {
       display: flex;
@@ -63,7 +72,7 @@
     }
     .field-header label { margin: 0; }
 
-    /* Farbauswahlleiste für Schwarz & Rot */
+    /* Farbauswahlleiste (Schwarz & Rot) */
     .color-picker {
       display: flex;
       gap: 6px;
@@ -73,7 +82,7 @@
       width: 15px;
       height: 15px;
       border-radius: 50%;
-      border: 1px solid #ffffff;
+      border: 1px solid #cbd5e1;
       cursor: pointer;
       opacity: 0.5;
       transition: opacity 0.2s, transform 0.2s;
@@ -83,12 +92,26 @@
       transform: scale(1.25);
       border-width: 2px;
     }
-    .color-btn.c-black { background-color: #ffffff; border-color: #000; }
-    .color-btn.c-red { background-color: var(--color-red); border-color: #fff; }
+    .color-btn.c-black { background-color: var(--color-black); border-color: #0f172a; }
+    .color-btn.c-red { background-color: var(--color-red); border-color: #dc2626; }
 
-    label { display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 500; }
-    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 6px 8px; background: #0b111e; border: 1px solid var(--border-color); border-radius: 5px; color: #fff; font-size: 0.82rem; outline: none; }
-    input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
+    label { display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
+    input[type="text"], input[type="date"], select, textarea { 
+      width: 100%; 
+      padding: 6px 8px; 
+      background: var(--input-bg); 
+      border: 1px solid var(--border-color); 
+      border-radius: 5px; 
+      color: var(--text-main); 
+      font-size: 0.82rem; 
+      outline: none; 
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus { 
+      border-color: var(--erni-blue); 
+      background: #ffffff;
+      box-shadow: 0 0 0 2px rgba(0, 122, 195, 0.15);
+    }
     
     textarea { 
       resize: vertical; 
@@ -97,8 +120,8 @@
     }
 
     /* Farbige Textausgaben im UI */
-    textarea.txt-black { color: #ffffff !important; }
-    textarea.txt-red { color: #ef4444 !important; font-weight: 600; }
+    textarea.txt-black { color: var(--color-black) !important; font-weight: 500; }
+    textarea.txt-red { color: var(--color-red) !important; font-weight: 700; }
 
     /* Checkbox Styling */
     .checkbox-container {
@@ -106,7 +129,7 @@
       align-items: center;
       gap: 8px;
       padding: 6px 8px;
-      background: #0b111e;
+      background: var(--input-bg);
       border: 1px solid var(--border-color);
       border-radius: 5px;
       cursor: pointer;
@@ -115,7 +138,7 @@
     .checkbox-container input[type="checkbox"] {
       width: 16px;
       height: 16px;
-      accent-color: var(--accent-green);
+      accent-color: var(--te-orange);
       cursor: pointer;
     }
     .checkbox-container span {
@@ -132,6 +155,7 @@
       padding: 10px 14px;
       margin-bottom: 8px;
       border: 1px solid var(--border-color);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .top-meta-grid {
       display: grid;
@@ -154,7 +178,8 @@
       border-radius: 8px;
       padding: 8px;
       border: 2px solid var(--border-color);
-      background: rgba(22, 31, 46, 0.7);
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
     .anlage-column.col-801 { border-color: var(--anl-801-border); background: var(--anl-801-bg); }
@@ -165,12 +190,12 @@
     .anlage-header-badge {
       text-align: center;
       font-size: 0.95rem;
-      font-weight: bold;
-      padding: 5px;
+      font-weight: 800;
+      padding: 6px;
       border-radius: 5px;
       color: #ffffff;
       margin-bottom: 8px;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      letter-spacing: 0.5px;
     }
     .col-801 .anlage-header-badge { background: var(--anl-801-border); }
     .col-802 .anlage-header-badge { background: var(--anl-802-border); }
@@ -187,13 +212,14 @@
       background: var(--card-bg);
       border-radius: 8px;
       border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
 
     .btn-submit { 
       flex: 1;
       max-width: 450px;
       padding: 11px 20px; 
-      background: var(--accent-blue); 
+      background: var(--te-orange); 
       color: #fff; 
       border: none; 
       border-radius: 6px; 
@@ -204,15 +230,16 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transition: background 0.2s;
     }
-    .btn-submit:hover { background: #2563eb; }
+    .btn-submit:hover { background: var(--te-orange-hover); }
 
     .btn-reset { 
       flex: 1;
       max-width: 450px;
       padding: 11px 20px; 
-      background: #374151; 
-      color: var(--text-main); 
+      background: #475569; 
+      color: #ffffff; 
       border: none; 
       border-radius: 6px; 
       font-size: 0.95rem; 
@@ -222,12 +249,13 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      transition: background 0.2s;
     }
-    .btn-reset:hover { background: #4b5563; }
+    .btn-reset:hover { background: #334155; }
 
     .btn-archive, .btn-personnel { 
       padding: 8px 16px; 
-      background: #2563eb; 
+      background: var(--erni-blue); 
       color: #fff; 
       border: none; 
       border-radius: 6px; 
@@ -237,15 +265,17 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      transition: background 0.2s;
     }
-    .btn-personnel { background: #4b5563; }
-    .btn-archive:hover { background: #1d4ed8; }
-    .btn-personnel:hover { background: #374151; }
+    .btn-personnel { background: #64748b; }
+    .btn-archive:hover { background: var(--erni-blue-hover); }
+    .btn-personnel:hover { background: #475569; }
 
     .edit-mode-banner {
       display: none;
-      background: var(--accent-orange);
-      color: #000;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
       font-weight: bold;
       padding: 7px 12px;
       border-radius: 6px;
@@ -254,7 +284,7 @@
       font-size: 0.85rem;
     }
     .btn-cancel-edit {
-      background: #000;
+      background: #92400e;
       color: #fff;
       border: none;
       padding: 3px 8px;
@@ -265,17 +295,17 @@
     }
 
     /* Modal Modul */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
-    .modal-content { background: var(--card-bg); border-radius: 8px; width: 100%; max-width: 550px; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-color); padding: 14px; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
-    .modal-title { font-size: 1.05rem; font-weight: bold; color: #fff; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+    .modal-content { background: #ffffff; border-radius: 8px; width: 100%; max-width: 550px; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-color); padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid var(--erni-blue); padding-bottom: 6px; }
+    .modal-title { font-size: 1.05rem; font-weight: bold; color: var(--erni-blue); }
     .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
     
     .archive-search-box {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: #0b111e;
+      background: var(--input-bg);
       padding: 8px 10px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
@@ -283,14 +313,14 @@
     }
     .archive-search-box label { margin: 0; font-weight: bold; white-space: nowrap; color: var(--text-main); }
     .archive-search-box input[type="date"] { flex: 1; padding: 5px; }
-    .btn-reset-filter { background: #374151; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+    .btn-reset-filter { background: #64748b; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
 
     .archive-list, .personnel-list { overflow-y: auto; flex: 1; margin-bottom: 8px; }
     
     .archive-item, .personnel-item {
-      background: #0b111e;
+      background: var(--input-bg);
       border: 1px solid var(--border-color);
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 8px 12px;
       margin-bottom: 6px;
       display: flex;
@@ -299,7 +329,7 @@
       gap: 8px;
     }
     .archive-info { font-size: 0.82rem; flex: 1; }
-    .archive-date { font-weight: bold; color: var(--accent-blue); }
+    .archive-date { font-weight: bold; color: var(--erni-blue); }
     .archive-actions { display: flex; gap: 6px; align-items: center; }
     
     .btn-load { background: var(--accent-green); color: #fff; border: none; padding: 5px 9px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
@@ -310,7 +340,7 @@
       grid-template-columns: 1fr 1fr auto;
       gap: 6px;
       margin-bottom: 10px;
-      background: #0b111e;
+      background: var(--input-bg);
       padding: 8px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
@@ -319,16 +349,16 @@
 
     .confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .btn-modal-action { padding: 10px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
-    .btn-modal-primary { background: var(--accent-blue); color: #fff; }
-    .btn-modal-secondary { background: #4b5563; color: #fff; }
+    .btn-modal-primary { background: var(--te-orange); color: #fff; }
+    .btn-modal-secondary { background: #64748b; color: #fff; }
     .btn-modal-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
 
     /* PDF Design (A4 Querformat) */
     #pdf-container { position: absolute; left: -9999px; top: -9999px; width: 1123px; background: #ffffff; color: #1f2937; font-family: Arial, sans-serif; }
     .pdf-page { width: 1123px; height: 794px; padding: 25px; background: #ffffff; position: relative; }
-    .pdf-header { background: #1e293b; color: #ffffff; padding: 10px 18px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .pdf-header { background: var(--erni-blue); color: #ffffff; padding: 10px 18px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 8px solid var(--te-orange); }
     .pdf-header h2 { font-size: 15pt; font-weight: bold; }
-    .pdf-header .badge { background: #3b82f6; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 10pt; font-weight: bold; }
+    .pdf-header .badge { background: var(--te-orange); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 10pt; font-weight: bold; }
     .pdf-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
     .pdf-meta-item label { font-size: 7pt; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; }
     .pdf-meta-item div { font-size: 9.5pt; font-weight: 600; color: #0f172a; }
@@ -400,7 +430,7 @@
           <option value="Unterbrechung">Unterbrechung</option>
         `;
 
-        // Farbauswahlleiste (Nur Schwarz & Rot)
+        // Farbauswahlleiste (Schwarz & Rot)
         function createColorPicker(fieldId) {
           return `
             <div class="color-picker" id="picker_${fieldId}">
@@ -602,7 +632,7 @@
     if (colorName === 'red') {
       return '#dc2626'; // Rot
     }
-    return '#1e293b'; // Schwarz/Dunkelgrau für PDF
+    return '#0f172a'; // Dunkles Schwarz für PDF
   }
 
   function setToTodayDate() {
@@ -803,7 +833,7 @@
         el.className = 'personnel-item';
         el.innerHTML = `
           <div>
-            <strong style="color:var(--accent-blue);">${p.pnr || 'Keine PNr'}</strong> 
+            <strong style="color:var(--erni-blue);">${p.pnr || 'Keine PNr'}</strong> 
             <span style="margin-left:8px;">${p.name}</span>
           </div>
           <button class="btn-delete-item" onclick="deletePersonnelEntry(${index})">🗑️</button>
@@ -974,7 +1004,7 @@
           <div class="archive-info">
             <div class="archive-date">${item.datum} - ${item.schicht}</div>
             <div style="color:var(--text-muted); font-size:0.75rem;">Bediener: ${bedienerListe}</div>
-            <div style="color:#6b7280; font-size:0.7rem;">Archiviert: ${item.timestamp}</div>
+            <div style="color:#64748b; font-size:0.7rem;">Archiviert: ${item.timestamp}</div>
           </div>
           <div class="archive-actions">
             <button class="btn-load" onclick="loadArchiveEntry(${item.id})">Laden & Bearbeiten</button>
