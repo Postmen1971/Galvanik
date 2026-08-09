@@ -1,1397 +1,641 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schichtbuch Bandgalvanik - PC Edition</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <style>
-    :root {
-      /* Helles, modernes TE & ERNI Farbkonzept */
-      --bg-color: #f1f5f9;
-      --card-bg: #ffffff;
-      --te-orange: #ee7d00;
-      --te-orange-hover: #d66f00;
-      --erni-blue: #007ac3;
-      --erni-blue-hover: #0063a0;
-      
-      --accent-red: #dc2626;
-      --accent-green: #059669;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border-color: #94a3b8;
-      --input-bg: #f8fafc;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Galvanik Tools – Strom & Zeit</title>
+<style>
+  /* Allgemeine Anpassungen für bessere Darstellung auf kleinen Bildschirmen */
+  :root{--orange:#F58025;--darkblue:#002855;--lightgray:#f7f7f7}
+  body{
+    font-family:Arial,sans-serif;
+    background:linear-gradient(to bottom right,var(--lightgray),#ffffff);
+    margin:0;
+    /* Anpassung 2: Padding für Rand: Fixe 16px oben/unten und seitlich. */
+    padding: 16px;
+    display:flex;
+    justify-content:center;
+    flex-direction:column;
+    align-items:center;
+    /* Zusätzliches Padding für Topbar-Platzhalter */
+    padding-top: 70px; 
+  }
 
-      /* Farb-Definitionen für Textauswahl (Schwarz & Rot) */
-      --color-black: #0f172a;
-      --color-red: #dc2626;
+  .topbar{
+    position:fixed; /* Auf fixed geändert, damit es oben bleibt */
+    top:0;
+    left:0;
+    right:0;
+    background:#ffffffcc;
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid #e5e7eb;
+    padding:10px 16px; /* Etwas mehr seitlicher Rand */
+    z-index:1000;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+  }
+  
+  .tabbtn{border:2px solid #002855;color:#002855;background:#fff;padding:8px 12px; /* Etwas kleiner für iPhone 8 */
+          border-radius:999px;cursor:pointer;font-weight:bold;font-size:14px;}
+  .tabbtn.active{background:#F58025;color:#fff;border-color:#F58025}
+  section.tab-pane{display:none}section.tab-pane.active{display:block}
 
-      /* Anlagen-Farben */
-      --anl-801-border: #007ac3;
-      --anl-801-bg: #f0f9ff;
-      --anl-802-border: #059669;
-      --anl-802-bg: #f0fdf4;
-      --anl-803-border: #ee7d00;
-      --anl-803-bg: #fff7ed;
-      --anl-804-border: #7c3aed;
-      --anl-804-bg: #f5f3ff;
-    }
+  .container{
+    width:calc(100% - 32px); /* 100% minus seitliches Body-Padding */
+    max-width:500px;
+    background:#fff;
+    padding:20px; /* Innen-Padding leicht reduziert */
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+    position:relative;
+    margin-top:0; /* Kein zusätzlicher oberer Margin, da Body-Padding angepasst wurde */
+    margin-bottom: 16px; /* Rand unten */
+  }
+  
+  /* Media Query für sehr kleine Geräte entfernt, da iPhone 8 als Basis gilt. */
+  h2{text-align:center;color:var(--orange);margin-top:0}
+  label{display:block;margin-top:14px; /* Etwas weniger Abstand */
+        font-weight:bold;color:#002855;font-size:16px;}
+  input[type=number], select{
+    width:100%;
+    padding:8px; /* Etwas weniger Padding */
+    font-size:16px; /* Etwas kleiner für bessere Sichtbarkeit */
+    margin-top:4px;
+    border:1px solid #ccc;border-radius:6px;box-sizing:border-box
+  }
+  
+  .ergebnis{margin-top:20px;padding:12px;background:#f0f0f0;font-size:18px; /* Etwas kleiner */
+            text-align:center;border-radius:8px;color:#F58025;border:1px solid #ccc}
+  .haftungshinweis{letter-spacing:.2px;text-align:center;font-size:11px;margin-top:8px;color:#888}
+  #counter{position:fixed;bottom:4px;right:8px;font-size:10px;color:#ccc;font-family:monospace;opacity:.5;z-index:9999}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 10px 14px; font-size: 12px; }
-    .container { max-width: 1800px; margin: 0 auto; padding-bottom: 10px; }
-    
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      background: #ffffff;
-      padding: 10px 16px;
-      border-radius: 8px;
-      border-left: 6px solid var(--te-orange);
-      border: 2px solid var(--border-color);
-      border-left-width: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1 { font-size: 1.35rem; color: var(--erni-blue); font-weight: 800; letter-spacing: 0.5px; }
+  /* Zeitrechner spezifische Anpassungen */
+  .zeit-container .row{display:flex;gap:8px}
+  .zeit-container select, .zeit-container button{padding:10px;font-size:16px;}
+  .zeit-container button{background:#0066cc;color:#fff;border:none;font-weight:bold;cursor:pointer}
+  .zeit-container button:hover{background:#004d99}
+  .zeit-result{margin-top:16px;padding:12px;background:#e9f5e9;border-radius:6px;font-weight:bold;color:#0b4f0b;border:1px solid #bfe0bf}
 
-    .header-buttons { display: flex; gap: 8px; }
+  .panel{margin-top:12px;padding:10px;border-radius:6px;border:1px solid #e5e7eb}
+  .tip-panel{background:#fff7ea;border-color:#f2c58a;color:#8a5400}
+  .quote-panel{background:#eef5ff;border-color:#cbdcff;color:#143a66;font-style:italic}
+  .panel h3{margin:0 0 6px 0;font-size:14px;color:#333;font-style:normal}
+  .small{font-size:12px;color:#666}
 
-    .card { background: var(--card-bg); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border: 2px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-    .card-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid var(--erni-blue); display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
-    .card-title.red { border-bottom-color: var(--accent-red); color: var(--accent-red); }
-    .card-title.green { border-bottom-color: var(--accent-green); color: var(--accent-green); }
-    .card-title.orange { border-bottom-color: var(--te-orange); color: var(--te-orange); }
-
-    /* Spezielle Hervorhebungskarte für die Gut-Menge */
-    .gutmenge-card {
-      border: 3px solid var(--accent-green) !important;
-      background: #f0fdf4;
-      padding: 8px 12px;
-      margin-bottom: 8px;
-    }
-    .gutmenge-card label {
-      color: var(--accent-green);
-      font-weight: 800;
-      font-size: 0.78rem;
-    }
-    .gutmenge-card input {
-      border: 2px solid var(--accent-green);
-      font-weight: 700;
-      background: #ffffff;
-    }
-
-    .field-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 6px;
-      margin-bottom: 3px;
-    }
-    .field-header label { margin: 0; }
-
-    /* Farbauswahlleiste (Schwarz & Rot) */
-    .color-picker {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .color-btn {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 1px solid #cbd5e1;
-      cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s, transform 0.2s;
-    }
-    .color-btn:hover, .color-btn.active {
-      opacity: 1;
-      transform: scale(1.25);
-      border-width: 2px;
-    }
-    .color-btn.c-black { background-color: var(--color-black); border-color: #0f172a; }
-    .color-btn.c-red { background-color: var(--color-red); border-color: #dc2626; }
-
-    label { display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; }
-    input[type="text"], input[type="date"], select, textarea { 
-      width: 100%; 
-      padding: 6px 8px; 
-      background: var(--input-bg); 
-      border: 1px solid var(--border-color); 
-      border-radius: 5px; 
-      color: var(--text-main); 
-      font-size: 0.82rem; 
-      outline: none; 
-      transition: border-color 0.2s, background 0.2s;
-    }
-    input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus { 
-      border-color: var(--erni-blue); 
-      background: #ffffff;
-      box-shadow: 0 0 0 2px rgba(0, 122, 195, 0.15);
-    }
-    
-    /* Dynamisches Mitwachsen der Textareas OHNE Scrollbalken */
-    textarea { 
-      resize: none !important; 
-      overflow: hidden !important;
-      min-height: 48px;
-      height: auto;
-      line-height: 1.4;
-      display: block;
-    }
-
-    /* Farbige Textausgaben im UI */
-    textarea.txt-black { color: var(--color-black) !important; font-weight: 500; }
-    textarea.txt-red { color: var(--color-red) !important; font-weight: 700; }
-
-    /* Checkbox Styling */
-    .checkbox-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      background: var(--input-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    .checkbox-container input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--te-orange);
-      cursor: pointer;
-    }
-    .checkbox-container span {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    
-    .top-meta-card {
-      background: var(--card-bg);
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
-      border: 2px solid var(--border-color);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    }
-    .top-meta-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: center;
-    }
-
-    /* PC 4-Spalten Layout */
-    .pc-anlagen-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 6px;
-      align-items: start;
-    }
-
-    .anlage-column {
-      display: flex;
-      flex-direction: column;
-      border-radius: 8px;
-      padding: 8px;
-      border: 3px solid var(--border-color);
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .anlage-column.col-801 { border-color: var(--anl-801-border); background: var(--anl-801-bg); }
-    .anlage-column.col-802 { border-color: var(--anl-802-border); background: var(--anl-802-bg); }
-    .anlage-column.col-803 { border-color: var(--anl-803-border); background: var(--anl-803-bg); }
-    .anlage-column.col-804 { border-color: var(--anl-804-border); background: var(--anl-804-bg); }
-
-    .anlage-header-badge {
+  /* ===== Spulenrechner (1:1 aus AzeSpule.html übernommen, isoliert unter #tab-spule) ===== */
+  #tab-spule{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;}
+  #tab-spule .container{
+      background-color: white;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      border: 1px solid #ddd;
+      padding:0;
+  }
+  #tab-spule .header {
+      background-color: #333;
+      color: white;
+      padding: 15px;
       text-align: center;
-      font-size: 0.95rem;
-      font-weight: 800;
-      padding: 6px;
-      border-radius: 5px;
-      color: #ffffff;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-    .col-801 .anlage-header-badge { background: var(--anl-801-border); }
-    .col-802 .anlage-header-badge { background: var(--anl-802-border); }
-    .col-803 .anlage-header-badge { background: var(--anl-803-border); }
-    .col-804 .anlage-header-badge { background: var(--anl-804-border); }
+  }
+  #tab-spule .header h2 { margin: 0; font-size: 1.4rem; }
 
-    .action-buttons-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 16px;
-      margin-top: 12px;
-      padding: 10px;
-      background: var(--card-bg);
-      border-radius: 8px;
-      border: 2px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    }
-
-    .btn-submit { 
-      flex: 1;
-      max-width: 450px;
-      padding: 11px 20px; 
-      background: var(--te-orange); 
-      color: #fff; 
-      border: none; 
-      border-radius: 6px; 
-      font-size: 0.95rem; 
-      font-weight: bold; 
-      cursor: pointer; 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.2s;
-    }
-    .btn-submit:hover { background: var(--te-orange-hover); }
-
-    .btn-reset { 
-      flex: 1;
-      max-width: 450px;
-      padding: 11px 20px; 
-      background: #475569; 
-      color: #ffffff; 
-      border: none; 
-      border-radius: 6px; 
-      font-size: 0.95rem; 
-      font-weight: bold; 
-      cursor: pointer; 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.2s;
-    }
-    .btn-reset:hover { background: #334155; }
-
-    .btn-archive, .btn-personnel { 
-      padding: 8px 16px; 
-      background: var(--erni-blue); 
-      color: #fff; 
-      border: none; 
-      border-radius: 6px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      font-size: 0.85rem; 
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-    .btn-personnel { background: #64748b; }
-    .btn-archive:hover { background: var(--erni-blue-hover); }
-    .btn-personnel:hover { background: #475569; }
-
-    .edit-mode-banner {
-      display: none;
-      background: #fef3c7;
-      color: #92400e;
-      border: 2px solid #fde68a;
+  #tab-spule .section {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+  }
+  #tab-spule .section-title {
       font-weight: bold;
-      padding: 7px 12px;
-      border-radius: 6px;
+      color: #555;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+  }
+
+  #tab-spule .bg-blue { background-color: #eef6ff; }
+  #tab-spule .bg-green { background-color: #ebf9eb; }
+  #tab-spule .bg-result { background-color: #2c3e50; }
+
+  #tab-spule label {
+      display: block;
+      margin-bottom: 5px;
+      margin-top:0;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.9rem;
+  }
+
+  #tab-spule input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
       margin-bottom: 8px;
-      text-align: center;
-      font-size: 0.85rem;
-    }
-    .btn-cancel-edit {
-      background: #92400e;
-      color: #fff;
+      margin-top:0;
+  }
+
+  #tab-spule button {
+      width: 100%;
+      padding: 14px;
+      background-color: #007bff;
+      color: white;
+      font-size: 18px;
       border: none;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      margin-left: 10px;
+      font-weight: bold;
       cursor: pointer;
-    }
+      transition: background 0.2s;
+      margin-top: 10px;
+  }
 
-    /* Modal Modul */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
-    .modal-content { background: #ffffff; border-radius: 8px; width: 100%; max-width: 550px; max-height: 85vh; display: flex; flex-direction: column; border: 2px solid var(--border-color); padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid var(--erni-blue); padding-bottom: 6px; }
-    .modal-title { font-size: 1.05rem; font-weight: bold; color: var(--erni-blue); }
-    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
-    
-    .archive-search-box {
+  #tab-spule .result-area {
+      text-align: center;
+      padding: 20px;
+      color: white;
+      display: none;
+  }
+  #tab-spule .result-group {
+      margin-bottom: 15px;
+  }
+  #tab-spule .result-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #4cd137;
+      line-height: 1.1;
+  }
+  #tab-spule .result-label {
+      font-size: 0.9rem;
+      color: #ccc;
+  }
+  #tab-spule .error-msg {
+      color: red;
+      text-align: center;
+      padding: 10px;
+      display: none;
+  }
+  #tab-spule .small-output {
+      color: #f7b731;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: -5px;
+      margin-bottom: 15px;
+      display: block;
+  }
+
+  #tab-spule .switch-container {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--input-bg);
-      padding: 8px 10px;
+      justify-content: space-around;
+      padding: 10px 0;
+      background-color: #f0f0f0;
+  }
+  #tab-spule .switch-button {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
       border-radius: 6px;
-      border: 1px solid var(--border-color);
-      margin-bottom: 10px;
-    }
-    .archive-search-box label { margin: 0; font-weight: bold; white-space: nowrap; color: var(--text-main); }
-    .archive-search-box input[type="date"] { flex: 1; padding: 5px; }
-    .btn-reset-filter { background: #64748b; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
-
-    .archive-list, .personnel-list { overflow-y: auto; flex: 1; margin-bottom: 8px; }
-    
-    .archive-item, .personnel-item {
-      background: var(--input-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .archive-info { font-size: 0.82rem; flex: 1; }
-    .archive-date { font-weight: bold; color: var(--erni-blue); }
-    .archive-actions { display: flex; gap: 6px; align-items: center; }
-    
-    .btn-load { background: var(--accent-green); color: #fff; border: none; padding: 5px 9px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
-    .btn-delete-item { background: #dc2626; color: #fff; border: none; padding: 5px 7px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
-
-    .personnel-add-form {
-      display: grid;
-      grid-template-columns: 1fr 1fr auto;
-      gap: 6px;
-      margin-bottom: 10px;
-      background: var(--input-bg);
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-    }
-    .btn-add-personnel { background: var(--accent-green); color: #fff; border: none; padding: 6px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-
-    .confirm-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-    .btn-modal-action { padding: 10px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; text-align: center; }
-    .btn-modal-primary { background: var(--te-orange); color: #fff; }
-    .btn-modal-secondary { background: #64748b; color: #fff; }
-    .btn-modal-cancel { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
-
-    /* PDF Design (A4 Querformat) */
-    #pdf-container { position: absolute; left: -9999px; top: -9999px; width: 1123px; background: #ffffff; color: #1f2937; font-family: Arial, sans-serif; }
-    .pdf-page { width: 1123px; height: 794px; padding: 25px; background: #ffffff; position: relative; }
-    .pdf-header { background: var(--erni-blue); color: #ffffff; padding: 10px 18px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 8px solid var(--te-orange); }
-    .pdf-header h2 { font-size: 15pt; font-weight: bold; }
-    .pdf-header .badge { background: var(--te-orange); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 10pt; font-weight: bold; }
-    .pdf-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
-    .pdf-meta-item label { font-size: 7pt; text-transform: uppercase; color: #64748b; font-weight: bold; display: block; }
-    .pdf-meta-item div { font-size: 9.5pt; font-weight: 600; color: #0f172a; }
-    .pdf-anlagen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .pdf-anlage-card { border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; overflow: hidden; display: flex; flex-direction: column; font-size: 8pt; }
-    .pdf-anlage-title { background: #0f172a; color: #ffffff; font-weight: bold; text-align: center; padding: 5px; font-size: 9.5pt; }
-    .pdf-card-body { padding: 6px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-    .pdf-block { background: #f8fafc; border: 1px solid #f1f5f9; padding: 5px; border-radius: 4px; min-height: 28px; }
-    .pdf-block.gutmenge-block { border: 2px solid var(--accent-green); background: #f0fdf4; }
-    .pdf-block-title { font-size: 7pt; font-weight: bold; text-transform: uppercase; color: #475569; margin-bottom: 2px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
-    .pdf-block-title.red { color: #dc2626; border-bottom-color: #fca5a5; }
-    .pdf-block-title.green { color: #059669; border-bottom-color: #6ee7b7; }
-    .pdf-block-title.orange { color: #d97706; border-bottom-color: #fcd34d; }
-    .pdf-val { font-size: 8pt; color: #1e293b; white-space: pre-wrap; word-break: break-word; }
-    .pdf-footer { position: absolute; bottom: 12px; left: 25px; right: 25px; border-top: 1px solid #e2e8f0; padding-top: 5px; display: flex; justify-content: space-between; font-size: 7pt; color: #94a3b8; }
-  </style>
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s, color 0.2s;
+      flex-grow: 1;
+      text-align: center;
+      margin: 0 5px;
+  }
+  #tab-spule .switch-button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #0056b3;
+  }
+</style>
 </head>
 <body>
 
-<datalist id="bedienerDatalist"></datalist>
+<nav class="topbar">
+  <button id="tabBtnStrom" class="tabbtn active">⚡ Stromrechner</button>
+  <button id="tabBtnZeit" class="tabbtn">⏱️ Zeitrechner</button>
+  <button id="tabBtnSpule" class="tabbtn">🧵 Spulenrechner</button>
+</nav>
 
-<div class="container" id="main-form">
-  <div class="header-bar">
-    <h1>Schichtbuch Bandgalvanik</h1>
-    <div class="header-buttons">
-      <button type="button" class="btn-personnel" onclick="openPersonnelModal()">👥 Personal-Liste</button>
-      <button type="button" class="btn-archive" onclick="openArchiveModal()">📁 Schichtbuch-Archiv</button>
-    </div>
+<section id="tab-strom" class="tab-pane active">
+  <div class="container">
+    <h2>Galvanik-Stromrechner</h2>
+
+    <label for="istStrom">Aktueller Strom (A):</label>
+    <input type="number" id="istStrom" placeholder="z. B. 4" value="4">
+
+    <label for="istSchicht">Aktuelle Schichtdicke (µm):</label>
+    <input type="number" id="istSchicht" placeholder="z. B. 1.0" value="1.0">
+
+    <label for="zielSchicht">Ziel-Schichtdicke (µm):</label>
+    <input type="number" id="zielSchicht" placeholder="z. B. 2.5" value="2.5">
+
+    <label for="istGeschw">Aktuelle Bandgeschwindigkeit (m/min):</label>
+    <input type="number" id="istGeschw" placeholder="z. B. 7" value="7">
+
+    <label for="neuGeschw">Neue Bandgeschwindigkeit (m/min):</label>
+    <input type="number" id="neuGeschw" placeholder="z. B. 7" value="7">
+
+    <div class="ergebnis" id="ergebnis">Ergebnis wird hier angezeigt</div>
+    <div class="haftungshinweis">Alle Angaben ohne Gewähr – es wird keine Haftung übernommen.</div>
   </div>
 
-  <div id="editBanner" class="edit-mode-banner">
-    ⚠️ Du bearbeitest einen bestehenden Archiv-Eintrag!
-    <button type="button" class="btn-cancel-edit" onclick="cancelEditMode()">Bearbeitung abbrechen & neue Schicht starten</button>
-  </div>
+  <div id="counter"></div>
 
-  <div class="top-meta-card">
-    <div class="top-meta-grid">
-      <div>
-        <label for="datum">Datum</label>
-        <input type="date" id="datum">
+  <script>
+    function berechne(){
+      const I_alt=parseFloat(document.getElementById("istStrom").value);
+      const S_alt=parseFloat(document.getElementById("istSchicht").value);
+      const S_neu=parseFloat(document.getElementById("zielSchicht").value);
+      const V_alt=parseFloat(document.getElementById("istGeschw").value);
+      const V_neu=parseFloat(document.getElementById("neuGeschw").value);
+
+      if(!I_alt||!S_alt||!S_neu||!V_alt||!V_neu){document.getElementById("ergebnis").innerText="Bitte alle Werte eingeben.";return;}
+      
+      const I_neu=I_alt*(S_neu/S_alt)*(V_neu/V_alt);
+      document.getElementById("ergebnis").innerText=`Benötigter Strom: ${I_neu.toFixed(2)} A`;
+    }
+    
+    document.querySelectorAll("#tab-strom input").forEach(i=>i.addEventListener("input",berechne));
+    
+    document.addEventListener("DOMContentLoaded", berechne);
+
+    const key="galvanikCounter"; let count=localStorage.getItem(key); count=count?parseInt(count)+1:1;
+    localStorage.setItem(key,count); document.getElementById("counter").innerText=`#${count}`;
+  </script>
+</section>
+
+<section id="tab-zeit" class="tab-pane">
+  <div class="container zeit-container">
+    <h2>Galvanik-Zeitrechner</h2>
+
+    <div class="row">
+      <div style="flex:1">
+        <label for="speedInput">Geschwindigkeit (m/min)</label>
+        <input type="number" id="speedInput" placeholder="z. B. 7" value="7" min="1">
       </div>
-      <div>
-        <label for="schicht">Schicht</label>
-        <select id="schicht">
-          <option value="Frühschicht">Frühschicht</option>
-          <option value="Spätschicht">Spätschicht</option>
-          <option value="Nachtschicht">Nachtschicht</option>
-        </select>
+    </div>
+    <div class="row">
+      <div style="flex:1">
+        <label for="startSel">Startpunkt</label>
+        <select id="startSel"></select>
       </div>
+      <div style="flex:1">
+        <label for="endSel">Endpunkt</label>
+        <select id="endSel"></select>
+      </div>
+    </div>
+
+    <button id="calcBtn">Zeit berechnen</button>
+    <div class="zeit-result" id="zeitResult">Bitte wähle Start, Ende und Geschwindigkeit.</div>
+
+    <div class="panel tip-panel">
+      <h3>Tipp des Tages</h3>
+      <div id="tipOfDay">–</div>
+      <div class="small">Wechselt automatisch täglich.</div>
+    </div>
+
+    <div class="panel quote-panel">
+      <h3>Zitat des Tages (Allgemein)</h3>
+      <div id="quoteGeneral">–</div>
     </div>
   </div>
 
-  <form id="schichtForm">
-    <div class="pc-anlagen-grid">
-      <script>
-        const anlagen = ['801', '802', '803', '804'];
-        const ursachenOptions = `
-          <option value="Kein Ausschuss">Kein Ausschuss</option>
-          <option value="Bandriss">Bandriss</option>
-          <option value="Beschichtungsfehler">Beschichtungsfehler</option>
-          <option value="Mechanischer Defekt">Mechanischer Defekt</option>
-          <option value="Werkzeug">Werkzeug</option>
-          <option value="QS- Prüfung">QS- Prüfung</option>
-          <option value="Verbogene Kontakte">Verbogene Kontakte</option>
-          <option value="Sonstige">Sonstige</option>
-          <option value="Wickelgüte">Wickelgüte</option>
-          <option value="Anlagenstillstand">Anlagenstillstand</option>
-          <option value="Einstellteile">Einstellteile</option>
-          <option value="Haftung">Haftung</option>
-          <option value="Unterbrechung">Unterbrechung</option>
-        `;
+  <script>
+    /* --- Zeitmarken (Basis: 7 m/min) --- */
+    const punkte=[
+      ["Start","0:00"],
+      ["Hot Wash","5:10"],
+      ["Nickel 1","6:32"],
+      ["Nickel 6","7:25"],
+      ["Nickel 12","8:27"],
+      ["Pd 1","9:10"],
+      ["Pd 3","9:40"],
+      ["Pd 5","10:12"],
+      ["Pd 7","10:40"],
+      ["U-Turn Mitte","11:47"],
+      ["Gold 1","14:52"],
+      ["Gold 3","15:22"],
+      ["Gold 5","15:40"],
+      ["Gold Stripper","16:11"],
+      ["Zinn 1","17:20"],
+      ["Zinn 3","17:41"],
+      ["Zinn 5","18:03"],
+      ["Zinn 7","18:25"],
+      ["Zinn 9","19:00"],
+      ["Zinn Stripper","19:25"],
+      ["Nach-Fön","20:31"],
+      ["Speicher","22:17"],
+      ["Getriebe vor Befettung","25:43"]
+    ];
 
-        // Farbauswahlleiste (Schwarz & Rot)
-        function createColorPicker(fieldId) {
-          return `
-            <div class="color-picker" id="picker_${fieldId}">
-              <div class="color-btn c-black active" title="Schwarz" onclick="setTextFieldColor('${fieldId}', 'black')"></div>
-              <div class="color-btn c-red" title="Rot" onclick="setTextFieldColor('${fieldId}', 'red')"></div>
-            </div>
-          `;
-        }
+    /* --- Helfer --- */
+    function zeitInSekunden(t){const[m,s]=t.split(":").map(Number);return m*60+s;}
+    function dayOfYear(d=new Date()){
+      const start=new Date(d.getFullYear(),0,0);
+      const diff=d - start + ((start.getTimezoneOffset()-d.getTimezoneOffset())*60*1000);
+      return Math.floor(diff/(1000*60*60*24));
+    }
+    function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
-        anlagen.forEach(a => {
-          document.write(`
-            <div class="anlage-column col-${a}">
-              <div class="anlage-header-badge">ANLAGE ${a}</div>
-              
-              <!-- Produktion & Artikel -->
-              <div class="card">
-                <div class="card-title green">Produktion & Artikel</div>
-                <label for="bediener_${a}">Bediener (Pers.-Nr. / Name)</label>
-                <input type="text" id="bediener_${a}" list="bedienerDatalist" placeholder="Pers.-Nr. wählen/tippen" onchange="formatBedienerInput('bediener_${a}')">
+    /* --- UI init --- */
+    const startSel=document.getElementById("startSel"),endSel=document.getElementById("endSel");
+    punkte.forEach(([n])=>{startSel.add(new Option(n,n));endSel.add(new Option(n,n));});
+    startSel.value="Start"; endSel.value="Hot Wash";
 
-                <div class="grid-2" style="margin-top:6px;">
-                  <div>
-                    <label>Artikelnummer</label>
-                    <input type="text" id="art_akt_${a}" placeholder="Artikel-Nr.">
-                  </div>
-                  <div>
-                    <label>Fertigungsauftrag</label>
-                    <input type="text" id="art_folge_${a}" maxlength="20" placeholder="12-stellige FA-Nr.">
-                  </div>
-                </div>
-              </div>
+    /* --- Berechnung (Skalierung von 7 m/min auf v m/min) --- */
+    function berechnenZeit(){
+      const v=parseFloat(document.getElementById("speedInput").value);
+      const s=startSel.value, e=endSel.value, out=document.getElementById("zeitResult");
+      
+      if(!v||!s||!e){out.textContent="Bitte Start, Ende und Geschwindigkeit wählen/eingeben.";return;}
+      if(v <= 0){out.textContent="Die Geschwindigkeit muss größer als 0 sein.";return;}
 
-              <!-- Gut-Menge unmittelbar über Ausschuss & Fehler platziert -->
-              <div class="card gutmenge-card">
-                <label for="gut_menge_${a}">Gut-Menge (Stück)</label>
-                <input type="text" id="gut_menge_${a}" placeholder="z. B. 5000 Stück">
-              </div>
+      const iS=punkte.findIndex(p=>p[0]===s), iE=punkte.findIndex(p=>p[0]===e);
+      if(iS>iE){out.textContent="Rückwärtslauf ist nicht erlaubt.";return;}
 
-              <!-- Ausschuss & Fehler -->
-              <div class="card">
-                <div class="card-title red">Ausschuss & Fehler</div>
-                <div class="grid-2">
-                  <div>
-                    <label>Ausschuss (m / Stk)</label>
-                    <input type="text" id="ausschuss_menge_${a}_1" placeholder="0">
-                  </div>
-                  <div>
-                    <label>Hauptursache</label>
-                    <select id="ausschuss_grund_${a}_1">${ursachenOptions}</select>
-                  </div>
-                </div>
-                
-                <div class="field-header">
-                  <label>Details zum Fehler</label>
-                  ${createColorPicker(`ausschuss_details_${a}_1`)}
-                </div>
-                <textarea id="ausschuss_details_${a}_1" class="txt-black auto-resize" placeholder="Beschreibung des Fehlers"></textarea>
-                <input type="hidden" id="color_ausschuss_details_${a}_1" value="black">
-              </div>
+      const tStart7=zeitInSekunden(punkte[iS][1]), tEnd7=zeitInSekunden(punkte[iE][1]);
+      const d7=tEnd7 - tStart7;
+      const total=Math.round(d7*(7/v));
+      const m=Math.floor(total/60), sec=total%60;
+      out.textContent=`Von "${s}" bis "${e}" dauert es bei ${v.toFixed(1)} m/min etwa ${m} Minuten und ${sec} Sekunden.`;
+      renderGeneral();
+    }
+    document.getElementById("calcBtn").addEventListener("click", berechnenZeit);
 
-              <!-- Wheels Wartung -->
-              <div class="card">
-                <div class="card-title orange">Wheels Wartung</div>
-                <label class="checkbox-container">
-                  <input type="checkbox" id="wartung_${a}">
-                  <span>Wheels Wartung durchgeführt</span>
-                </label>
-              </div>
+    /* --- 365 feste Galvanik-Tipps (deterministisch aus Bausteinen) --- */
+    const tipBereich=["Nickel","Palladium","Gold","Zinn","Spülen","Vorbehandlung","Kontaktierung","Anoden","Kathoden","Stripper","U-Turn","Trocknung"];
+    const tipAktion=["Stromdichte prüfen","Temperaturfenster kontrollieren","pH stabil halten","Leitfähigkeit messen","Zugaben nach Analyse dosieren","Durchfluss erhöhen","Rühren optimieren","Filter prüfen oder wechseln","Anodenfilm inspizieren","Kontaktflächen reinigen","Bandführung justieren","Drag-Out minimieren","Oberflächenspannung senken","Proben dokumentieren","Stromrampe testen","Verweilzeit verifizieren","Luftblasen vermeiden","Spülkaskade überprüfen","Rückführung aktivieren","Dosiersperren prüfen","Anodenkörbe gleichmäßig verteilen","Ionenbelastung beobachten","Badoberfläche entspannen","Kathodenbewegung anpassen","Badansatz nach SOP prüfen"];
+    const tipBed=["bei höherer Bandgeschwindigkeit","bei niedrigen Temperaturen","nach Stillstand","bei Qualitätsabweichungen","vor Schichtwechsel","nach Filterwechsel","bei geänderter Stromstärke","bei hoher Teilelast","bei Kantenunterdeckung","bei Fleckenbildung","bei steigender Rauheit","bei Glanzverlust"];
+    const tipDetail=["Messwerte protokollieren","Soll/Ist vergleichen","Zeitstempel setzen","Kontaktfedern schonen","gleichmäßige Strömung sichern","Leitwert in der Spüle loggen","Badschaum entfernen","Rauheit dokumentieren","Fühler kalibrieren","Stromzuführung auf Erwärmung prüfen","Zugaben in kleinen Schritten vornehmen","Überläufe klar halten","Sicherheitskette testen"];
+    function buildTip(i){
+      const b=tipBereich[i%tipBereich.length];
+      const a=tipAktion[(i*3)%tipAktion.length];
+      const c=tipBed[(i*5+7)%tipBed.length];
+      const d=tipDetail[(i*11+3)%tipDetail.length];
+      switch(i%4){
+        case 0: return `${b}: ${a} ${c} – ${d}.`;
+        case 1: return `${b}: ${c}, daher ${a} (${d}).`;
+        case 2: return `${b}: Zur Stabilität ${a}; zusätzlich ${d}.`;
+        default: return `${b}: ${a}. Danach ${d}.`;
+      }
+    }
+    const TIPS365=[...Array(365)].map((_,i)=>buildTip(i));
+    document.getElementById('tipOfDay').textContent = TIPS365[(dayOfYear()-1)%365];
 
-              <!-- To-Do Folgeschicht -->
-              <div class="card">
-                <div class="card-title green">
-                  <span>To-Do Folgeschicht</span>
-                  ${createColorPicker(`todo_${a}`)}
-                </div>
-                <textarea id="todo_${a}" class="txt-black auto-resize" placeholder="Was muss die nächste Schicht erledigen?"></textarea>
-                <input type="hidden" id="color_todo_${a}" value="black">
-              </div>
+    /* --- Zitat des Tages (Allgemein): Autor, wenn bekannt --- */
+    const KNOWN_QUOTES = [
+      {text:"Der Weg ist das Ziel.", author:"Konfuzius (zugeschrieben)"},
+      {text:"Alles fließt.", author:"Heraklit"},
+      {text:"Wer rastet, der rostet.", author:"Sprichwort"},
+      {text:"Auch aus Steinen, die einem in den Weg gelegt werden, kann man Schönes bauen.", author:"Goethe"},
+      {text:"In der Ruhe liegt die Kraft.", author:"Sprichwort"},
+      {text:"Wege entstehen dadurch, dass man sie geht.", author:"Franz Kafka"},
+      {text:"Wissen ist Macht.", author:"Francis Bacon"},
+      {text:"Man sieht nur mit dem Herzen gut.", author:"Antoine de Saint-Exupéry"},
+      {text:"Ohne Daten nur Meinung.", author:"W. Edwards Deming"},
+      {text:"Das Bessere ist der Feind des Guten.", author:"Voltaire"},
+      {text:"Handle nur nach der Maxime, die du zugleich wollen kannst als allgemeines Gesetz.", author:"Immanuel Kant"},
+      {text:"Nicht die Dinge beunruhigen uns, sondern die Meinungen über die Dinge.", author:"Epiktet"},
+      {text:"Der Anfang ist die Hälfte des Ganzen.", author:"Aristoteles"},
+      {text:"Per aspera ad astra.", author:"Lateinisches Motto"},
+      {text:"Humor ist der Regenschirm der Weisen.", author:"Erich Kästner"},
+      {text:"Der Mensch ist, was er täglich tut.", author:"Aristoteles"},
+      {text:"Wer immer tut, was er schon kann, bleibt, was er ist.", author:"Henry Ford"},
+      {text:"Die Einfachheit ist die höchste Stufe der Vollendung.", author:"Leonardo da Vinci"},
+      {text:"Glück bevorzugt den Vorbereiteten.", author:"Louis Pasteur"},
+      {text:"Erfahrung ist der Name, den jeder seinen Irrtümern gibt.", author:"Oscar Wilde"},
+      {text:"Ohne Fleiß kein Preis.", author:"Sprichwort"},
+      {text:"Kein Meister ist vom Himmel gefallen.", author:"Sprichwort"},
+      {text:"Steter Tropfen höhlt den Stein.", author:"Sprichwort"},
+      {text:"Ausdauer wird früher oder später belohnt.", author:"Sprichwort"},
+      {text:"Auch der längste Weg beginnt mit dem ersten Schritt.", author:"Laozi (zugeschrieben)"},
+      {text:"Der Zweck heiligt nicht die Mittel.", author:"Sprichwort"},
+      {text:"Gib jedem Tag die Chance, der schönste deines Lebens zu werden.", author:"Mark Twain (zugeschrieben)"},
+      {text:"Wer etwas will, findet Wege. Wer etwas nicht will, findet Gründe.", author:"Sprichwort"},
+      {text:"Mut steht am Anfang des Handelns, Glück am Ende.", author:"Demokrit"},
+      {text:"Die Grenzen meiner Sprache bedeuten die Grenzen meiner Welt.", author:"Ludwig Wittgenstein"},
+      {text:"Der Kopf ist rund, damit das Denken die Richtung wechseln kann.", author:"Francis Picabia"},
+      {text:"Probleme kann man niemals mit derselben Denkweise lösen, durch die sie entstanden sind.", author:"Albert Einstein (zugeschrieben)"}
+    ];
+    const qSub=["Mut","Geduld","Klarheit","Sorgfalt","Neugier","Fokus","Disziplin","Gelassenheit","Achtsamkeit","Verantwortung","Weitsicht","Bescheidenheit","Präzision","Qualität","Lernen","Übung","Ausdauer","Respekt","Teamgeist","Neuanfang","Ruhe","Tempo","Ordnung","Offenheit","Vertrauen","Humor","Logik","Intuition","Erfahrung","Neugierde"];
+    const qVerb=["ist","bleibt","wirkt","schafft","bringt","führt zu","fordert","ermöglicht","ordnet","schärft"];
+    const qPred=["leise — und stark","die Grundlage von Qualität","der beste Anfang","mehr als Tempo","Raum für Lösungen","Sicherheit im Prozess","Ruhe in der Entscheidung","Klarheit im Kopf","Reserven für schwere Tage","Wert statt Aufwand","den Unterschied","Zeit zum Nachdenken"];
+    const qTail=["— Spruch","— Sprichwort","— Weisheit","— Leitsatz","— Werkstattregel"];
+    function buildAph(i){return `${qSub[i%qSub.length]} ${qVerb[(i*7)%qVerb.length]} ${qPred[(i*13)%qPred.length]}. ${qTail[(i*17)%qTail.length]}`;}
+    const QUOTES1000=(()=>{const arr=[]; for(let i=0;i<1000;i++) arr.push(buildAph(i)); return arr;})();
+    const ALL_GENERAL_QUOTES=[...QUOTES1000, ...KNOWN_QUOTES];
 
-              <!-- Stationen & Störungen -->
-              <div class="card">
-                <div class="card-title">Stationen & Störungen</div>
-                
-                <div class="field-header">
-                  <label>Auffälligkeiten an Stationen</label>
-                  ${createColorPicker(`stationen_${a}`)}
-                </div>
-                <textarea id="stationen_${a}" class="txt-black auto-resize" placeholder="Abwickeln, Schweißen, Hot Wash, U-Clean..."></textarea>
-                <input type="hidden" id="color_stationen_${a}" value="black">
+    function renderGeneral(){
+      const q=pick(ALL_GENERAL_QUOTES);
+      if(typeof q==="string"){ document.getElementById('quoteGeneral').textContent=q; }
+      else { document.getElementById('quoteGeneral').textContent=`${q.text} — ${q.author}`; }
+    }
+    renderGeneral();
+  </script>
+</section>
 
-                <div class="field-header">
-                  <label>Defekte & techn. Störungen</label>
-                  ${createColorPicker(`defekte_${a}`)}
-                </div>
-                <textarea id="defekte_${a}" class="txt-black auto-resize" placeholder="Was war defekt?"></textarea>
-                <input type="hidden" id="color_defekte_${a}" value="black">
-
-                <div class="field-header">
-                  <label>Werkzeug / Material / KVP</label>
-                  ${createColorPicker(`material_${a}`)}
-                </div>
-                <textarea id="material_${a}" class="txt-black auto-resize" placeholder="Bestellungen, fehlende Teile, KVP"></textarea>
-                <input type="hidden" id="color_material_${a}" value="black">
-              </div>
-            </div>
-          `);
-        });
-      </script>
+<section id="tab-spule" class="tab-pane">
+<div class="container">
+    <div class="header">
+        <h2>Spulen-Bestandsrechner (Kalibriert)</h2>
     </div>
 
-    <div class="action-buttons-container">
-      <button type="button" id="submitBtn" class="btn-submit" onclick="generateShiftPDF()">🖨️ PDF Erstellen & Öffnen</button>
-      <button type="button" class="btn-reset" onclick="openResetModal()">🔄 Schicht zurückstellen / archivieren</button>
+    <div class="switch-container">
+        <div class="switch-button active" id="btn-98" onclick="setSpoolSize(98)">Spule 98 cm</div>
+        <div class="switch-button" id="btn-76" onclick="setSpoolSize(76)">Spule 76 cm</div>
     </div>
-  </form>
+
+    <div class="section" style="padding-top: 10px; padding-bottom: 10px;">
+        <div class="section-title" style="margin-bottom: 0;">
+            Kern-Durchmesser: **35 cm**. Max. Durchmesser: <span id="maxDDisplay">98 cm</span>.
+        </div>
+    </div>
+
+    <div class="section bg-blue">
+        <div class="section-title">1. Referenz (Kalibrierung)</div>
+        
+        <label>Gemessene Distanz **AUßEN nach KERN** (cm) - **REFERENZ**:</label>
+        <input type="number" id="refHalfD" placeholder="z.B. 31.5">
+        
+        <label>Stückzahl bei diesem Referenz-Zustand:</label>
+        <input type="number" id="refCount" placeholder="z.B. 200000">
+
+        <label>**Kontakte pro Meter (Dichte):**</label>
+        <input type="number" id="cpm" placeholder="z.B. 200">
+        <small style="color:#666; display:block; margin-top:-5px; margin-bottom:10px;">Dieser Wert kalibriert die Genauigkeit.</small>
+        
+        <label>Berechneter Referenz-Durchmesser $D_{\text{Ref}}$:</label>
+        <span id="outputRefD" class="small-output">-</span>
+        
+        <label>Kalibrierfaktor $F$ (Fläche pro Meter):</label>
+        <span id="outputFactorF" class="small-output">-</span>
+    </div>
+
+    <div class="section bg-green">
+        <div class="section-title">2. Aktuelle Messung</div>
+        
+        <label>Gemessene Distanz **AUßEN nach KERN** (cm) - **AKTUELL**:</label>
+        <input type="number" id="currHalfD" placeholder="z.B. 25.5">
+
+        <label>Berechneter Aktueller-Durchmesser $D_{\text{Aktuell}}$:</label>
+        <span id="outputCurrD" class="small-output">-</span>
+    </div>
+
+    <div id="errorBox" class="error-msg"></div>
+
+    <button onclick="calculate()">BESTAND BERECHNEN</button>
+
+    <div id="resultBox" class="result-area bg-result">
+        <div class="result-group">
+            <div class="result-label">Aktueller Bestand ca.:</div>
+            <div id="resultValue" class="result-number">0</div>
+            <div class="result-label">Stück</div>
+        </div>
+    </div>
 </div>
-
-<div id="archiveModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Schichtbuch-Archiv</div>
-      <button class="modal-close" onclick="closeArchiveModal()">&times;</button>
-    </div>
-    <div class="archive-search-box">
-      <label for="archiveSearchDate">🔍 Nach Datum suchen:</label>
-      <input type="date" id="archiveSearchDate" onchange="filterArchiveByDate()">
-      <button type="button" class="btn-reset-filter" onclick="resetArchiveSearch()">Alle anzeigen</button>
-    </div>
-    <div class="archive-list" id="archiveList"></div>
-  </div>
-</div>
-
-<div id="personnelModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Personal-Liste verwalten</div>
-      <button class="modal-close" onclick="closePersonnelModal()">&times;</button>
-    </div>
-    <div class="personnel-add-form">
-      <div>
-        <label style="margin:0;">Pers.-Nr.</label>
-        <input type="text" id="newPersNr" placeholder="z. B. TE543248">
-      </div>
-      <div>
-        <label style="margin:0;">Name</label>
-        <input type="text" id="newName" placeholder="z. B. Max Mustermann">
-      </div>
-      <div style="display:flex; align-items:flex-end;">
-        <button type="button" class="btn-add-personnel" onclick="addPersonnelEntry()">+ Hinzufügen</button>
-      </div>
-    </div>
-    <div class="personnel-list" id="personnelList"></div>
-  </div>
-</div>
-
-<div id="resetModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">Formular zurückstellen</div>
-      <button class="modal-close" onclick="closeResetModal()">&times;</button>
-    </div>
-    <p style="font-size:0.88rem; color:var(--text-main); margin-bottom:10px;">
-      Möchtest du diese Schicht im Archiv speichern oder das Formular einfach leeren, ohne zu archivieren?
-    </p>
-    <div class="confirm-actions">
-      <button class="btn-modal-action btn-modal-primary" onclick="confirmReset(true)">💾 Archivieren & Neues Protokoll starten</button>
-      <button class="btn-modal-action btn-modal-secondary" onclick="confirmReset(false)">🗑️ Nicht archivieren (Nur zurückstellen)</button>
-      <button class="btn-modal-action btn-modal-cancel" onclick="closeResetModal()">Abbrechen</button>
-    </div>
-  </div>
-</div>
-
-<div id="pdf-container"></div>
 
 <script>
-  let currentEditingArchiveId = null;
-  let formHasUnsavedChanges = false;
-
-  const defaultPersonnel = [
-    { pnr: 'TE543248', name: 'M. Mustermann' },
-    { pnr: 'TE123456', name: 'J. Schmidt' },
-    { pnr: 'TE987654', name: 'A. Weber' }
-  ];
-
-  // Perfektes, exaktes automatisches Anpassen der Textarea-Höhe ohne Scrollbalken
-  function autoResizeTextarea(textarea) {
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight + 4) + 'px';
-  }
-
-  function adjustAllTextareas() {
-    document.querySelectorAll('textarea').forEach(el => autoResizeTextarea(el));
-  }
-
-  function setTextFieldColor(fieldId, colorName) {
-    const textarea = document.getElementById(fieldId);
-    const hiddenColorInput = document.getElementById('color_' + fieldId);
-    const picker = document.getElementById('picker_' + fieldId);
-
-    if (textarea && hiddenColorInput) {
-      textarea.className = textarea.className.replace(/\btxt-\w+\b/g, '') + ' txt-' + colorName;
-      hiddenColorInput.value = colorName;
-
-      if (picker) {
-        picker.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = picker.querySelector('.c-' + colorName);
-        if (activeBtn) activeBtn.classList.add('active');
-      }
-
-      formHasUnsavedChanges = true;
-      saveToLocalStorage();
-      if (currentEditingArchiveId) archiveCurrentState();
-    }
-  }
-
-  function getColorHex(colorName) {
-    if (colorName === 'red') {
-      return '#dc2626'; // Rot
-    }
-    return '#0f172a'; // Dunkles Schwarz für PDF
-  }
-
-  function setToTodayDate() {
-    const datumEl = document.getElementById('datum');
-    if (datumEl) {
-      datumEl.valueAsDate = new Date();
-    }
-  }
-
-  function normalizeDateString(dateStr) {
-    if (!dateStr) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  function matchesFilterDate(item, filterDateStr) {
-    if (!filterDateStr) return true;
+    // FIXE KONSTANTEN
+    const D_INNER = 35.0; // Kern-Durchmesser in cm
+    const PI = Math.PI;
     
-    const normFilter = normalizeDateString(filterDateStr);
-    const normShiftDate = normalizeDateString(item.datum);
-    
-    if (normShiftDate === normFilter) return true;
-    
-    const parts = normFilter.split('-');
-    if (parts.length === 3) {
-      const year = parts[0];
-      const monthWithZero = parts[1];
-      const monthNoZero = String(parseInt(parts[1], 10));
-      const dayWithZero = parts[2];
-      const dayNoZero = String(parseInt(parts[2], 10));
+    // VARIABLE FÜR DIE AKTUELL GEWÄHLTE SPULENGRÖSSE
+    let currentDMax = 98.0; 
+    const D_MAX_98 = 98.0;
+    const D_MAX_76 = 76.0;
 
-      const de1 = `${dayNoZero}.${monthNoZero}.${year}`;
-      const de2 = `${dayWithZero}.${monthWithZero}.${year}`;
-      const iso = normFilter;
-
-      const ts = item.timestamp || '';
-      const shift = item.datum || '';
-
-      if (ts.includes(de1) || ts.includes(de2) || ts.includes(iso)) return true;
-      if (shift.includes(de1) || shift.includes(de2) || shift.includes(iso)) return true;
-    }
-
-    return false;
-  }
-
-  function getPersonnelList() {
-    try {
-      const list = localStorage.getItem('schichtbuch_personnel');
-      if (!list) {
-        localStorage.setItem('schichtbuch_personnel', JSON.stringify(defaultPersonnel));
-        return defaultPersonnel;
-      }
-      return JSON.parse(list);
-    } catch (e) {
-      return defaultPersonnel;
-    }
-  }
-
-  function updateDatalist() {
-    const list = getPersonnelList();
-    const datalist = document.getElementById('bedienerDatalist');
-    datalist.innerHTML = '';
-    list.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.pnr ? `${p.pnr} - ${p.name}` : p.name;
-      datalist.appendChild(opt);
-    });
-  }
-
-  function formatBedienerInput(fieldId) {
-    const field = document.getElementById(fieldId);
-    if (!field || !field.value) return;
-
-    const val = field.value.trim();
-    if (val.includes(' - ')) {
-      const parts = val.split(' - ');
-      field.value = parts[0].trim();
-    }
-  }
-
-  function getCurrentFormData() {
-    const data = {};
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(el => {
-      if (el.id) {
-        if (el.type === 'checkbox') {
-          data[el.id] = el.checked;
-        } else {
-          data[el.id] = el.value;
-        }
-      }
-    });
-    return data;
-  }
-
-  function saveToLocalStorage() {
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(el => {
-      if (el.id) {
-        if (el.type === 'checkbox') {
-          localStorage.setItem('schichtbuch_' + el.id, el.checked ? 'true' : 'false');
-        } else {
-          localStorage.setItem('schichtbuch_' + el.id, el.value);
-        }
-      }
-    });
-    if (currentEditingArchiveId) {
-      localStorage.setItem('schichtbuch_current_editing_id', currentEditingArchiveId);
-    } else {
-      localStorage.removeItem('schichtbuch_current_editing_id');
-    }
-  }
-
-  function loadFromLocalStorage() {
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(el => {
-      if (el.id) {
-        const val = localStorage.getItem('schichtbuch_' + el.id);
-        if (val !== null) {
-          if (el.type === 'checkbox') {
-            el.checked = (val === 'true');
-          } else {
-            el.value = val;
-          }
-        }
-      }
-    });
-
-    ['801', '802', '803', '804'].forEach(a => {
-      ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
-        const colorVal = localStorage.getItem('schichtbuch_color_' + fieldId) || 'black';
-        setTextFieldColor(fieldId, colorVal);
-      });
-    });
-
-    if (!localStorage.getItem('schichtbuch_datum')) {
-      setToTodayDate();
-    }
-
-    const savedEditingId = localStorage.getItem('schichtbuch_current_editing_id');
-    if (savedEditingId) {
-      currentEditingArchiveId = parseInt(savedEditingId, 10);
-      updateEditBanner();
-    }
-
-    adjustAllTextareas();
-  }
-
-  function updateEditBanner() {
-    const banner = document.getElementById('editBanner');
-    if (currentEditingArchiveId) {
-      banner.style.display = 'block';
-    } else {
-      banner.style.display = 'none';
-    }
-  }
-
-  function cancelEditMode() {
-    currentEditingArchiveId = null;
-    localStorage.removeItem('schichtbuch_current_editing_id');
-    updateEditBanner();
-    alert("Bearbeitungsmodus aufgehoben.");
-  }
-
-  function sortArchiveEntries(archive) {
-    return archive.sort((a, b) => {
-      const dateA = normalizeDateString(a.datum);
-      const dateB = normalizeDateString(b.datum);
-      if (dateA !== dateB) {
-        return dateB.localeCompare(dateA);
-      }
-      return (b.id || 0) - (a.id || 0);
-    });
-  }
-
-  function openPersonnelModal() {
-    renderPersonnelList();
-    document.getElementById('personnelModal').style.display = 'flex';
-  }
-
-  function closePersonnelModal() {
-    document.getElementById('personnelModal').style.display = 'none';
-  }
-
-  function renderPersonnelList() {
-    const container = document.getElementById('personnelList');
-    container.innerHTML = '';
-    const list = getPersonnelList();
-
-    if (list.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:15px; color:var(--text-muted);">Kein Personal hinterlegt.</div>';
-    } else {
-      list.forEach((p, index) => {
-        const el = document.createElement('div');
-        el.className = 'personnel-item';
-        el.innerHTML = `
-          <div>
-            <strong style="color:var(--erni-blue);">${p.pnr || 'Keine PNr'}</strong> 
-            <span style="margin-left:8px;">${p.name}</span>
-          </div>
-          <button class="btn-delete-item" onclick="deletePersonnelEntry(${index})">🗑️</button>
-        `;
-        container.appendChild(el);
-      });
-    }
-  }
-
-  function addPersonnelEntry() {
-    const pnrInput = document.getElementById('newPersNr');
-    const nameInput = document.getElementById('newName');
-
-    const pnr = pnrInput.value.trim();
-    const name = nameInput.value.trim();
-
-    if (!pnr && !name) {
-      alert("Bitte gib mindestens eine Personalnummer oder einen Namen ein.");
-      return;
-    }
-
-    const list = getPersonnelList();
-    list.push({ pnr, name });
-    localStorage.setItem('schichtbuch_personnel', JSON.stringify(list));
-
-    pnrInput.value = '';
-    nameInput.value = '';
-
-    updateDatalist();
-    renderPersonnelList();
-  }
-
-  function deletePersonnelEntry(index) {
-    const list = getPersonnelList();
-    list.splice(index, 1);
-    localStorage.setItem('schichtbuch_personnel', JSON.stringify(list));
-    updateDatalist();
-    renderPersonnelList();
-  }
-
-  function archiveCurrentState() {
-    let archive = [];
-    try {
-      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
-    } catch (e) { archive = []; }
-
-    const currentData = getCurrentFormData();
-    
-    const rawDatum = currentData.datum || new Date().toISOString().split('T')[0];
-    const datum = normalizeDateString(rawDatum);
-    const schicht = currentData.schicht || 'Unbekannt';
-
-    if (currentEditingArchiveId) {
-      const index = archive.findIndex(e => e.id === currentEditingArchiveId);
-      if (index !== -1) {
-        archive[index] = {
-          id: currentEditingArchiveId,
-          timestamp: new Date().toLocaleString('de-DE') + ' (Bearbeitet)',
-          datum: datum,
-          schicht: schicht,
-          formData: currentData
-        };
-      } else {
-        currentEditingArchiveId = Date.now();
-        archive.push({
-          id: currentEditingArchiveId,
-          timestamp: new Date().toLocaleString('de-DE'),
-          datum: datum,
-          schicht: schicht,
-          formData: currentData
-        });
-      }
-    } else {
-      const existingIndex = archive.findIndex(e => normalizeDateString(e.datum) === datum && e.schicht === schicht);
-
-      if (existingIndex !== -1) {
-        const overwrite = confirm(
-          `Achtung: Für den ${datum} (${schicht}) existiert bereits ein archiviertes Protokoll!\n\nMöchtest du den bestehenden Eintrag überschreiben/aktualisieren?`
-        );
+    /**
+     * Schaltet zwischen den Spulengrößen um.
+     * @param {number} newMaxD Der neue maximale Durchmesser (98 oder 76).
+     */
+    function setSpoolSize(newMaxD) {
+        currentDMax = newMaxD;
         
-        if (overwrite) {
-          archive[existingIndex] = {
-            id: archive[existingIndex].id,
-            timestamp: new Date().toLocaleString('de-DE') + ' (Aktualisiert)',
-            datum: datum,
-            schicht: schicht,
-            formData: currentData
-          };
-          currentEditingArchiveId = archive[existingIndex].id;
-        } else {
-          return false;
+        document.getElementById('maxDDisplay').innerText = newMaxD + ' cm';
+        document.getElementById('btn-98').classList.remove('active');
+        document.getElementById('btn-76').classList.remove('active');
+        document.getElementById('btn-' + newMaxD).classList.add('active');
+
+        // Output zurücksetzen
+        document.getElementById('outputRefD').innerText = '-';
+        document.getElementById('outputCurrD').innerText = '-';
+        document.getElementById('outputFactorF').innerText = '-';
+        
+        // Fehler und Ergebnis zurücksetzen
+        document.getElementById('errorBox').style.display = 'none';
+        document.getElementById('resultBox').style.display = 'none';
+    }
+
+    /**
+     * Führt die Hauptberechnung durch.
+     */
+    function calculate() {
+        // Elemente holen
+        const elRefHalfD = document.getElementById('refHalfD');
+        const elRefCount = document.getElementById('refCount');
+        const elCPM = document.getElementById('cpm'); // Kontakte pro Meter NEU
+        const elCurrHalfD = document.getElementById('currHalfD');
+        
+        const elResultBox = document.getElementById('resultBox');
+        const elResultVal = document.getElementById('resultValue');
+        const elOutputRefD = document.getElementById('outputRefD');
+        const elOutputCurrD = document.getElementById('outputCurrD');
+        const elOutputFactorF = document.getElementById('outputFactorF');
+        const elError = document.getElementById('errorBox');
+
+        // Werte auslesen
+        const d_ref_half_measured = parseFloat(elRefHalfD.value);
+        const count_ref = parseFloat(elRefCount.value);
+        const cpm = parseFloat(elCPM.value); // NEU: Kontakte pro Meter
+        const d_curr_half_measured = parseFloat(elCurrHalfD.value);
+
+        // Reset Outputs
+        elOutputRefD.innerText = '-';
+        elOutputCurrD.innerText = '-';
+        elOutputFactorF.innerText = '-';
+        elError.style.display = 'none';
+        elResultBox.style.display = 'none';
+
+        // --- 1. DATENPRÜFUNG ---
+        if (isNaN(d_ref_half_measured) || isNaN(count_ref) || isNaN(d_curr_half_measured) || isNaN(cpm) || cpm <= 0) {
+            showError("Bitte füllen Sie alle vier Felder mit gültigen Zahlen aus (Kontakte/m muss > 0 sein).");
+            return;
         }
-      } else {
-        const newId = Date.now();
-        const entry = {
-          id: newId,
-          timestamp: new Date().toLocaleString('de-DE'),
-          datum: datum,
-          schicht: schicht,
-          formData: currentData
-        };
-        archive.push(entry);
-      }
-    }
 
-    archive = sortArchiveEntries(archive);
-    localStorage.setItem('schichtbuch_archive', JSON.stringify(archive));
-    formHasUnsavedChanges = false;
-    return true;
-  }
+        // --- 2. BERECHNUNG DER DURCHMESSER ---
+        const d_ref_calculated = currentDMax - (d_ref_half_measured * 2);
+        const d_current_calculated = currentDMax - (d_curr_half_measured * 2);
 
-  function deleteArchiveEntry(id, e) {
-    if (e) e.stopPropagation();
+        // --- 3. GÜLTIGKEITSPRÜFUNG ---
+        if (d_ref_calculated <= D_INNER || d_current_calculated <= D_INNER) {
+            showError("Eine Messung ist zu groß. Der berechnete Durchmesser liegt unter dem Kern (" + D_INNER + " cm).");
+            return;
+        }
+        if (d_ref_calculated > currentDMax || d_current_calculated > currentDMax) {
+            showError("Eine Messung ist zu klein. Der berechnete Durchmesser ist größer als D_Max (" + currentDMax + " cm).");
+            return;
+        }
 
-    let archive = [];
-    try {
-      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
-    } catch (err) { archive = []; }
-
-    const entry = archive.find(item => item.id === id);
-    const label = entry ? `${entry.datum} (${entry.schicht})` : 'diesen Eintrag';
-
-    if (confirm(`Möchtest du ${label} wirklich dauerhaft aus dem Archiv löschen?`)) {
-      archive = archive.filter(item => item.id !== id);
-      localStorage.setItem('schichtbuch_archive', JSON.stringify(archive));
-
-      if (currentEditingArchiveId === id) {
-        cancelEditMode();
-      }
-
-      renderArchiveList();
-    }
-  }
-
-  function renderArchiveList(filterDate = null) {
-    const list = document.getElementById('archiveList');
-    list.innerHTML = '';
-
-    let archive = [];
-    try {
-      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
-    } catch (e) { archive = []; }
-
-    archive = sortArchiveEntries(archive);
-
-    if (filterDate) {
-      archive = archive.filter(item => matchesFilterDate(item, filterDate));
-    }
-
-    if (archive.length === 0) {
-      if (filterDate) {
-        list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Keine archivierten Schichten für das Datum <b>${filterDate}</b> vorhanden.</div>`;
-      } else {
-        list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Keine archivierten Schichten vorhanden.</div>';
-      }
-    } else {
-      archive.forEach((item) => {
-        const b801 = item.formData ? item.formData['bediener_801'] || '' : '';
-        const b802 = item.formData ? item.formData['bediener_802'] || '' : '';
-        const b803 = item.formData ? item.formData['bediener_803'] || '' : '';
-        const b804 = item.formData ? item.formData['bediener_804'] || '' : '';
+        // --- 4. KALIBRIERUNG (Flächenfaktor F) ---
         
-        const bedienerListe = [b801, b802, b803, b804].filter(b => b.trim() !== '').join(', ') || 'Keine Angaben';
+        // 4a. Länge der Referenzspule in Metern
+        const L_ref_m = count_ref / cpm;
 
-        const el = document.createElement('div');
-        el.className = 'archive-item';
-        el.innerHTML = `
-          <div class="archive-info">
-            <div class="archive-date">${item.datum} - ${item.schicht}</div>
-            <div style="color:var(--text-muted); font-size:0.75rem;">Bediener: ${bedienerListe}</div>
-            <div style="color:#64748b; font-size:0.7rem;">Archiviert: ${item.timestamp}</div>
-          </div>
-          <div class="archive-actions">
-            <button class="btn-load" onclick="loadArchiveEntry(${item.id})">Laden & Bearbeiten</button>
-            <button class="btn-delete-item" title="Löschen" onclick="deleteArchiveEntry(${item.id}, event)">🗑️</button>
-          </div>
-        `;
-        list.appendChild(el);
-      });
-    }
-  }
+        // 4b. Querschnittsfläche der Referenzwicklung in cm²
+        // R_ref = d_ref_calculated / 2; R_inner = D_INNER / 2;
+        // A = PI * (R_ref^2 - R_inner^2)
+        const area_ref_cm2 = PI * (Math.pow(d_ref_calculated / 2, 2) - Math.pow(D_INNER / 2, 2));
 
-  function filterArchiveByDate() {
-    const searchDate = document.getElementById('archiveSearchDate').value;
-    renderArchiveList(searchDate || null);
-  }
+        // 4c. Kalibrierfaktor F (Fläche pro Meter)
+        const factor_F = area_ref_cm2 / L_ref_m;
 
-  function resetArchiveSearch() {
-    document.getElementById('archiveSearchDate').value = '';
-    renderArchiveList(null);
-  }
-
-  function openArchiveModal() {
-    const modal = document.getElementById('archiveModal');
-    document.getElementById('archiveSearchDate').value = '';
-    renderArchiveList(null);
-    modal.style.display = 'flex';
-  }
-
-  function closeArchiveModal() {
-    document.getElementById('archiveModal').style.display = 'none';
-  }
-
-  function openResetModal() {
-    document.getElementById('resetModal').style.display = 'flex';
-  }
-
-  function closeResetModal() {
-    document.getElementById('resetModal').style.display = 'none';
-  }
-
-  function confirmReset(shouldArchive) {
-    if (shouldArchive) {
-      const success = archiveCurrentState();
-      if (!success) return;
-    }
-
-    closeResetModal();
-
-    const savedArtAkt = {};
-    const savedArtFolge = {};
-
-    ['801', '802', '803', '804'].forEach(a => {
-      const artAktEl = document.getElementById(`art_akt_${a}`);
-      const artFolgeEl = document.getElementById(`art_folge_${a}`);
-      
-      savedArtAkt[a] = artAktEl ? artAktEl.value : '';
-      savedArtFolge[a] = artFolgeEl ? artFolgeEl.value : '';
-    });
-
-    currentEditingArchiveId = null;
-
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('schichtbuch_') && key !== 'schichtbuch_archive' && key !== 'schichtbuch_personnel') {
-        localStorage.removeItem(key);
-      }
-    });
-
-    document.getElementById('schichtForm').reset();
-    
-    setToTodayDate();
-
-    ['801', '802', '803', '804'].forEach(a => {
-      const artAktEl = document.getElementById(`art_akt_${a}`);
-      const artFolgeEl = document.getElementById(`art_folge_${a}`);
-      const bedienerEl = document.getElementById(`bediener_${a}`);
-
-      if (artAktEl) artAktEl.value = savedArtAkt[a] || '';
-      if (artFolgeEl) artFolgeEl.value = savedArtFolge[a] || '';
-      if (bedienerEl) bedienerEl.value = '';
-
-      ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
-        setTextFieldColor(fieldId, 'black');
-      });
-    });
-
-    saveToLocalStorage();
-    updateEditBanner();
-    adjustAllTextareas();
-    formHasUnsavedChanges = false;
-
-    if (shouldArchive) {
-      alert("Schicht wurde archiviert und das Formular für die nächste Schicht auf das heutige Datum zurückgestellt!");
-    } else {
-      alert("Formular wurde zurückgestellt (ohne zu archivieren).");
-    }
-  }
-
-  function loadArchiveEntry(id) {
-    let archive = [];
-    try {
-      archive = JSON.parse(localStorage.getItem('schichtbuch_archive')) || [];
-    } catch (e) { archive = []; }
-
-    const entry = archive.find(e => e.id === id);
-    if (entry && entry.formData) {
-      if (confirm(`Möchtest du die Schicht vom ${entry.datum} (${entry.schicht}) laden? Alle Änderungen überschreiben diesen Eintrag im Archiv.`)) {
-        Object.keys(entry.formData).forEach(key => {
-          const field = document.getElementById(key);
-          if (field) {
-            if (field.type === 'checkbox') {
-              field.checked = Boolean(entry.formData[key]);
-            } else {
-              field.value = entry.formData[key];
-            }
-          }
-        });
-
-        ['801', '802', '803', '804'].forEach(a => {
-          ['ausschuss_details_' + a + '_1', 'todo_' + a, 'stationen_' + a, 'defekte_' + a, 'material_' + a].forEach(fieldId => {
-            const colorVal = entry.formData['color_' + fieldId] || 'black';
-            setTextFieldColor(fieldId, colorVal);
-          });
-        });
+        // --- 5. BERECHNUNG AKTUELLER BESTAND ---
         
-        currentEditingArchiveId = id;
-        saveToLocalStorage();
-        updateEditBanner();
-        closeArchiveModal();
-        adjustAllTextareas();
-        formHasUnsavedChanges = false;
-        alert("Eintrag geladen. Wenn du nun Änderungen vornimmst und archivierst/zurückstellst, wird dieser Eintrag aktualisiert.");
-      }
+        // 5a. Aktuelle Querschnittsfläche in cm²
+        const area_curr_cm2 = PI * (Math.pow(d_current_calculated / 2, 2) - Math.pow(D_INNER / 2, 2));
+
+        // 5b. Aktuelle Länge in Metern (Länge = Fläche / Faktor F)
+        const L_curr_m = area_curr_cm2 / factor_F;
+
+        // 5c. Aktuelle Stückzahl (Stückzahl = Länge * CPM)
+        let resultCount = Math.floor(L_curr_m * cpm);
+
+        // --- 6. AUSGABE ---
+        elOutputRefD.innerText = d_ref_calculated.toFixed(1) + ' cm';
+        elOutputCurrD.innerText = d_current_calculated.toFixed(1) + ' cm';
+        elOutputFactorF.innerText = factor_F.toFixed(4) + ' cm²/m';
+        
+        elResultVal.innerText = resultCount.toLocaleString('de-DE');
+        elResultBox.style.display = 'block';
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    setToTodayDate();
-    updateDatalist();
-    loadFromLocalStorage();
-
-    // Event-Listener für dynamisches Mitwachsen bei der Texteingabe
-    document.querySelectorAll('textarea').forEach(el => {
-      autoResizeTextarea(el);
-      el.addEventListener('input', () => autoResizeTextarea(el));
-      el.addEventListener('keyup', () => autoResizeTextarea(el));
-    });
-
-    document.querySelectorAll('input, select, textarea').forEach(el => {
-      el.addEventListener('input', () => {
-        formHasUnsavedChanges = true;
-        saveToLocalStorage();
-        if (currentEditingArchiveId) archiveCurrentState();
-      });
-      el.addEventListener('change', () => {
-        formHasUnsavedChanges = true;
-        saveToLocalStorage();
-        if (currentEditingArchiveId) archiveCurrentState();
-      });
-    });
-  });
-
-  window.addEventListener('beforeunload', (e) => {
-    if (formHasUnsavedChanges) {
-      e.preventDefault();
-      e.returnValue = 'Du hast ungespeicherte Änderungen! Möchtest du die Seite wirklich verlassen?';
-      return e.returnValue;
+    function showError(msg) {
+        const elError = document.getElementById('errorBox');
+        elError.innerText = msg;
+        elError.style.display = 'block';
     }
-  });
 
-  async function generateShiftPDF() {
-    const btn = document.getElementById('submitBtn');
-    btn.innerText = "Erstelle Schichtblatt...";
-    btn.style.opacity = "0.5";
-
-    archiveCurrentState();
-
-    const datumVal = (document.getElementById('datum') ? document.getElementById('datum').value : '') || '-';
-    const schichtVal = (document.getElementById('schicht') ? document.getElementById('schicht').value : '') || '-';
-
-    const pdfContainer = document.getElementById('pdf-container');
-    pdfContainer.innerHTML = '';
-
-    let anlagenHTML = '';
-    ['801', '802', '803', '804'].forEach(a => {
-      const getVal = id => (document.getElementById(id) ? document.getElementById(id).value : '').trim();
-      const getChk = id => (document.getElementById(id) ? document.getElementById(id).checked : false);
-      const getColor = id => (document.getElementById('color_' + id) ? document.getElementById('color_' + id).value : 'black');
-
-      const bedienerAnlage = getVal(`bediener_${a}`) || '-';
-      const gutMenge = getVal(`gut_menge_${a}`) || '0';
-      const artAkt = getVal(`art_akt_${a}`) || '-';
-      const artFolge = getVal(`art_folge_${a}`) || '-';
-      const todo = getVal(`todo_${a}`);
-      const stat = getVal(`stationen_${a}`);
-      const def = getVal(`defekte_${a}`);
-      const mat = getVal(`material_${a}`);
-      const wartungGeklickt = getChk(`wartung_${a}`);
-
-      const menge = getVal(`ausschuss_menge_${a}_1`) || '0';
-      const grund = getVal(`ausschuss_grund_${a}_1`);
-      const det = getVal(`ausschuss_details_${a}_1`);
-      const detColor = getColor(`ausschuss_details_${a}_1`);
-
-      let ausschussBlockHTML = '';
-      if ((menge !== '0' && menge !== '') || grund !== 'Kein Ausschuss' || det !== '') {
-        ausschussBlockHTML = `
-          <div style="margin-bottom: 3px; padding-bottom: 2px;">
-            <b>Menge:</b> <span style="color:#dc2626; font-weight:bold;">${menge}</span> | <b>Ursache:</b> ${grund}
-            ${det ? `<br><i style="color: ${getColorHex(detColor)}; font-weight: 600;">${det}</i>` : ''}
-          </div>
-        `;
-      } else {
-        ausschussBlockHTML = '<div class="pdf-val">Kein Ausschuss</div>';
-      }
-
-      const wartungBlockHTML = wartungGeklickt ? `
-        <div class="pdf-block">
-          <div class="pdf-block-title orange">Wheels Wartung</div>
-          <div class="pdf-val"><b>Durchgeführt:</b> ✅ Ja</div>
-        </div>
-      ` : `
-        <div class="pdf-block">
-          <div class="pdf-block-title orange">Wheels Wartung</div>
-          <div class="pdf-val">&nbsp;</div>
-        </div>
-      `;
-
-      const todoColor = getColor(`todo_${a}`);
-      const todoBlockHTML = todo ? `
-        <div class="pdf-block">
-          <div class="pdf-block-title green">To-Do Folgeschicht</div>
-          <div class="pdf-val" style="color: ${getColorHex(todoColor)}; font-weight: 600;">${todo}</div>
-        </div>
-      ` : `
-        <div class="pdf-block">
-          <div class="pdf-block-title green">To-Do Folgeschicht</div>
-          <div class="pdf-val">&nbsp;</div>
-        </div>
-      `;
-
-      let stoerungenHTML = '';
-      if (stat) stoerungenHTML += `<div class="pdf-val"><b>Stationen:</b> <span style="color: ${getColorHex(getColor('stationen_' + a))}; font-weight: 600;">${stat}</span></div>`;
-      if (def) stoerungenHTML += `<div class="pdf-val"><b>Defekte:</b> <span style="color: ${getColorHex(getColor('defekte_' + a))}; font-weight: 600;">${def}</span></div>`;
-      if (mat) stoerungenHTML += `<div class="pdf-val"><b>Material/KVP:</b> <span style="color: ${getColorHex(getColor('material_' + a))}; font-weight: 600;">${mat}</span></div>`;
-
-      const stoerungenBlockHTML = `
-        <div class="pdf-block" style="flex: 1;">
-          <div class="pdf-block-title">Stationen & Störungen</div>
-          ${stoerungenHTML ? stoerungenHTML : '<div class="pdf-val">&nbsp;</div>'}
-        </div>
-      `;
-
-      anlagenHTML += `
-        <div class="pdf-anlage-card">
-          <div class="pdf-anlage-title">ANLAGE ${a}</div>
-          <div class="pdf-card-body">
-            
-            <div class="pdf-block">
-              <div class="pdf-block-title green">Produktion</div>
-              <div class="pdf-val"><b>Bediener:</b> ${bedienerAnlage}</div>
-              <div class="pdf-val"><b>Artikel-Nr:</b> ${artAkt}</div>
-              <div class="pdf-val"><b>Fertigungsauftrag:</b> ${artFolge}</div>
-            </div>
-
-            <!-- Gut-Menge im PDF direkt über Ausschuss & Ursache platziert -->
-            <div class="pdf-block gutmenge-block">
-              <div class="pdf-block-title green" style="color: var(--accent-green); font-size: 7.5pt;">Gut-Menge (Stück)</div>
-              <div class="pdf-val" style="color: var(--accent-green); font-weight: 800; font-size: 9.5pt;">${gutMenge}</div>
-            </div>
-
-            <div class="pdf-block">
-              <div class="pdf-block-title red">Ausschuss & Ursache</div>
-              ${ausschussBlockHTML}
-            </div>
-
-            ${wartungBlockHTML}
-
-            ${todoBlockHTML}
-
-            ${stoerungenBlockHTML}
-
-          </div>
-        </div>
-      `;
-    });
-
-    pdfContainer.innerHTML = `
-      <div class="pdf-page" id="pdf-shift-page">
-        <div class="pdf-header">
-          <div>
-            <h2>SCHICHTBUCH PROTOKOLL</h2>
-            <div style="font-size: 8.5pt; opacity: 0.8;">Bandgalvanik Gesamtbericht</div>
-          </div>
-          <div class="badge">${schichtVal.toUpperCase()}</div>
-        </div>
-
-        <div class="pdf-meta-grid">
-          <div class="pdf-meta-item">
-            <label>Datum</label>
-            <div>${datumVal}</div>
-          </div>
-          <div class="pdf-meta-item">
-            <label>Schicht</label>
-            <div>${schichtVal}</div>
-          </div>
-        </div>
-
-        <div class="pdf-anlagen-grid">
-          ${anlagenHTML}
-        </div>
-
-        <div class="pdf-footer">
-          <span>Schichtbuch Protokoll - Bandgalvanik</span>
-          <span>1 Blatt pro Schicht</span>
-        </div>
-      </div>
-    `;
-
-    const pageEl = document.getElementById('pdf-shift-page');
-    const canvas = await html2canvas(pageEl, { scale: 2, useCORS: true, logging: false });
-
-    const imgData = canvas.toDataURL('image/jpeg', 0.98);
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('landscape', 'pt', 'a4');
-
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-
-    const pdfBlob = pdf.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-
-    btn.innerText = "🖨️ PDF Erstellen & Öffnen";
-    btn.style.opacity = "1";
-
-    window.location.href = pdfUrl;
-  }
+    // Initialisierung beim Laden
+    window.onload = function() {
+        setSpoolSize(D_MAX_98);
+    };
 </script>
+</section>
 
+<script>
+  const bS=document.getElementById("tabBtnStrom"), bZ=document.getElementById("tabBtnZeit"), bSp=document.getElementById("tabBtnSpule");
+  const pS=document.getElementById("tab-strom"), pZ=document.getElementById("tab-zeit"), pSp=document.getElementById("tab-spule");
+  function activate(t){
+    bS.classList.remove("active"); bZ.classList.remove("active"); bSp.classList.remove("active");
+    pS.classList.remove("active"); pZ.classList.remove("active"); pSp.classList.remove("active");
+    if(t==="strom"){bS.classList.add("active");pS.classList.add("active");}
+    else if(t==="zeit"){bZ.classList.add("active");pZ.classList.add("active");}
+    else{bSp.classList.add("active");pSp.classList.add("active");}
+  }
+  bS.addEventListener("click",()=>activate("strom"));
+  bZ.addEventListener("click",()=>activate("zeit"));
+  bSp.addEventListener("click",()=>activate("spule"));
+</script>
 </body>
 </html>
-
