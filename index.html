@@ -1549,7 +1549,7 @@
     function tvNorm(t){ return (t||"").toLowerCase().replace(/ı/g,"i").replace(/ß/g,"ss").normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
     const TV_NOISE=new Set(["fc","sc","sk","fk","cf","ac","as","sv","vfb","vfl","tsg","afc","club","de","the"]);
     function tvTokens(team){ return tvNorm(team).split(/[^a-z0-9]+/).filter(w=>w.length>=3 && !TV_NOISE.has(w)); }
-    const TV_JUGEND=/\b(u\d{2}|women|woman|frauen|kadin|ladies|reserves|ii)\b|\(w\)/i;
+    const TV_JUGEND=/\b(u-?\d{2}|women|woman|frauen|kadin|ladies|reserves|ii)\b|\(w\)/i;
     // Deutsche/türkische Sender zuerst (liegen in der Datei schon vorne), höchstens 4 anzeigen
     function tvSenderFuer(heim, gast, liste){
       const t1=tvTokens(heim), t2=tvTokens(gast);
